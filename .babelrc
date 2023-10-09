@@ -1,0 +1,11 @@
+{
+    "presets": ["@babel/preset-env"],
+    "plugins": [
+      ["@babel/plugin-proposal-optional-chaining"],
+      "babel-plugin-transform-remove-console",
+      "babel-plugin-minify-dead-code-elimination",
+      "babel-plugin-transform-object-assign"
+    ],
+    "compact": true
+  }
+  

@@ -1,0 +1,173 @@
+import * as dotenv from "dotenv";
+import express from "express";
+import * as http from "http";
+import * as ioInstance from "socket.io";
+import * as bodyParser from "body-parser";
+import rtcManager from "./services/webrtc_manager";
+import SocketEvent from "./constants/socket_events";
+import { credentials } from "@grpc/grpc-js";
+import { AuthServiceClient } from "./protos/auth_grpc_pb";
+import { VerifyTokenRequest, VerifyTokenResponse } from "./protos/auth_pb";
+
+dotenv.config();
+
+const port = process.env.PORT || 5000;
+const grpcServiceAddress = process.env.GRPC_ADDRESS || "localhost:50051";
+
+const authServiceClient = new AuthServiceClient(
+  grpcServiceAddress,
+  credentials.createInsecure()
+);
+
+const app = express();
+const server = http.createServer(app);
+const io = new ioInstance.Server(server);
+
+app.use(express.static("public"));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.get("/*", (req: express.Request, res: express.Response) =>
+  res.send("Waterbus WebRTC-SFU Server")
+);
+
+io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
+  try {
+    const authorization = socket.handshake.auth?.Authorization;
+    if (!authorization) throw new Error("Token is missing");
+
+    const token = authorization.replace("Bearer ", "");
+
+    if (!token) {
+      throw new Error("Token is missing");
+    }
+
+    const verifyRequest = new VerifyTokenRequest();
+    verifyRequest.setToken(token);
+
+    const verifyResponse: VerifyTokenResponse = await new Promise(
+      (resolve, reject) => {
+        authServiceClient.verifyToken(verifyRequest, (error, response) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(response);
+          }
+        });
+      }
+    );
+
+    if (!verifyResponse.getValid()) {
+      throw new Error("Invalid token");
+    }
+
+    // Attach userId to the socket for future reference
+    socket["userId"] = verifyResponse.getUserid();
+
+    return next();
+  } catch (error) {
+    console.log({ error });
+    return next(error);
+  }
+});
+
+io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
+  socket.on(SocketEvent.joinRoomCSS, async function (data: any) {
+    try {
+      const { sdp, roomId, participantId } = data;
+
+      socket["roomId"] = roomId;
+      socket["participantId"] = participantId;
+
+      const payload = await rtcManager.joinRoom(sdp, socket, {
+        callback: () => {
+          socket.broadcast.to(roomId).emit(SocketEvent.newParticipantSSC, {
+            targetId: participantId,
+          });
+        },
+      });
+
+      socket.join(roomId);
+
+      io.to(socket.id).emit(SocketEvent.joinRoomSSC, payload);
+    } catch (error) {
+      handleError(socket, SocketEvent.joinRoomCSS, error.toString());
+    }
+  });
+
+  socket.on(SocketEvent.makeSubscriber, async function (data: any) {
+    try {
+      const { targetId } = data;
+
+      const payload = await rtcManager.subscribe(socket, targetId);
+
+      io.to(socket.id).emit(SocketEvent.answerSubscriberSSC, {
+        targetId: targetId,
+        sdp: payload,
+      });
+    } catch (error) {
+      handleError(socket, SocketEvent.answerSubscriberCSS, error.toString());
+    }
+  });
+
+  socket.on(SocketEvent.answerSubscriberCSS, async function (data: any) {
+    const { sdp, targetId } = data;
+
+    await rtcManager.setDescriptionSubscriber(socket, targetId, sdp);
+  });
+
+  socket.on(SocketEvent.publisherCandidateCSS, async function (data: any) {
+    await rtcManager.addPublisherIceCandidate(socket, data);
+  });
+
+  socket.on(SocketEvent.subscriberCandidateCSS, async function (data: any) {
+    const { targetId, candidate } = data;
+    await rtcManager.addSubscriberIceCandidate(socket, targetId, candidate);
+  });
+
+  socket.on(SocketEvent.leaveRoomCSS, async function (data: any) {
+    try {
+      handleLeaveRoom(socket);
+    } catch (error) {
+      handleError(socket, SocketEvent.leaveRoomCSS, error.toString());
+    }
+  });
+
+  socket.on(SocketEvent.disconnect, function () {
+    try {
+      handleLeaveRoom(socket);
+    } catch (error) {
+      handleError(socket, SocketEvent.disconnect, error.toString());
+    }
+  });
+});
+
+function handleLeaveRoom(socket: ioInstance.Socket) {
+  const roomId = socket["roomId"];
+  const parcipantId = socket["participantId"];
+
+  if (!roomId) return;
+
+  rtcManager.leaveRoom(roomId, parcipantId);
+
+  socket.broadcast.to(roomId).emit(SocketEvent.participantHasLeftSSC, {
+    targetId: parcipantId,
+  });
+
+  delete socket["roomId"];
+  delete socket["participantId"];
+
+  socket.leave(roomId);
+}
+
+function handleError(
+  socket: ioInstance.Socket,
+  eventName: string,
+  error: string
+) {
+  console.log(eventName, error.toString());
+}
+
+server.listen(port, function () {
+  console.log("Server is running on port: " + port);
+});
