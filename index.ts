@@ -103,7 +103,7 @@ io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
 
       io.to(socket.id).emit(SocketEvent.answerSubscriberSSC, {
         targetId: targetId,
-        sdp: payload,
+        ...payload,
       });
     } catch (error) {
       handleError(socket, SocketEvent.answerSubscriberCSS, error.toString());
@@ -123,6 +123,38 @@ io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
   socket.on(SocketEvent.subscriberCandidateCSS, async function (data: any) {
     const { targetId, candidate } = data;
     await rtcManager.addSubscriberIceCandidate(socket, targetId, candidate);
+  });
+
+  socket.on(SocketEvent.setVideoEnabledCSS, async function (data: any) {
+    const roomId = socket["roomId"];
+    const targetId = socket["participantId"];
+
+    if (!roomId) return;
+
+    const { isEnabled } = data;
+
+    rtcManager.setVideoEnabled(socket, isEnabled);
+
+    socket.broadcast.to(roomId).emit(SocketEvent.setVideoEnabledSSC, {
+      isEnabled,
+      participantId: targetId,
+    });
+  });
+
+  socket.on(SocketEvent.setAudioEnabledCSS, async function (data: any) {
+    const roomId = socket["roomId"];
+    const targetId = socket["participantId"];
+
+    if (!roomId) return;
+
+    const { isEnabled } = data;
+
+    rtcManager.setAudioEnabled(socket, isEnabled);
+
+    socket.broadcast.to(roomId).emit(SocketEvent.setAudioEnabledSSC, {
+      isEnabled,
+      participantId: targetId,
+    });
   });
 
   socket.on(SocketEvent.leaveRoomCSS, async function (data: any) {

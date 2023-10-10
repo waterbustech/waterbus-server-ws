@@ -11,6 +11,10 @@ const SocketEvent = {
   leaveRoomCSS: "LEAVE_ROOM_CSS",
   newParticipantSSC: "NEW_PARTICIPANT_SSC",
   participantHasLeftSSC: "PARTICIPANT_HAS_LEFT_SSC",
+  setVideoEnabledCSS: "SET_VIDEO_ENABLED_CSS",
+  setVideoEnabledSSC: "SET_VIDEO_ENABLED_SSC",
+  setAudioEnabledCSS: "SET_AUDIO_ENABLED_CSS",
+  setAudioEnabledSSC: "SET_AUDIO_ENABLED_SSC",
   connection: "connection",
   disconnect: "disconnect",
 } as const;

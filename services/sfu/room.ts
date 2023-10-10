@@ -131,7 +131,11 @@ export class Room {
     const offer = await peer.createOffer();
     await peer.setLocalDescription(offer);
 
-    return offer.sdp;
+    return {
+      offer: offer.sdp,
+      videoEnabled: targetMedia.videoEnabled,
+      audioEnabled: targetMedia.audioEnabled,
+    };
   }
 
   async setSubscriberDescriptionSubscriber(
@@ -183,11 +187,23 @@ export class Room {
     );
   }
 
-  getOtherParticipants(participantId): string[] {
+  getOtherParticipants(participantId: string): string[] {
     return Object.keys(this.participants).filter((id) => id != participantId);
   }
 
-  async leave(participantId) {
+  setVideoEnabled(parcipantId: string, isEnabled: boolean) {
+    if (!this.participants[parcipantId]) return;
+
+    this.participants[parcipantId].media.videoEnabled = isEnabled;
+  }
+
+  setAudioEnabled(parcipantId: string, isEnabled: boolean) {
+    if (!this.participants[parcipantId]) return;
+
+    this.participants[parcipantId].media.audioEnabled = isEnabled;
+  }
+
+  async leave(participantId: string) {
     logger.info(`[IN_ROOM] ${participantId} has left`);
     this.removeAllSubscribersWithTargetId(participantId);
 

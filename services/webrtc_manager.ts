@@ -98,6 +98,26 @@ class WebRTCManager {
     await room.addSubscriberIceCandidate(targetId, participantId, candidate);
   }
 
+  async setAudioEnabled(socket, isEnabled: boolean) {
+    const { roomId, parcipantId } = socket;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setAudioEnabled(parcipantId, isEnabled);
+  }
+
+  async setVideoEnabled(socket, isEnabled: boolean) {
+    const { roomId, parcipantId } = socket;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setVideoEnabled(parcipantId, isEnabled);
+  }
+
   async leaveRoom(roomId: string, parcipantId: string) {
     const room = this.rooms[roomId];
 

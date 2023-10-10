@@ -7,6 +7,8 @@ export class Media {
   readonly mediaId = "m_" + v4();
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
+  videoEnabled: boolean = true;
+  audioEnabled: boolean = true;
 
   constructor(readonly publisherId: string) {}
 
