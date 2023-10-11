@@ -206,8 +206,8 @@ function handleLeaveRoom(
   if (!isNeedEmitToRestful) return;
 
   const leaveRoomRequest = new LeaveRoomRequest();
-  leaveRoomRequest.setRoomid = roomId;
-  leaveRoomRequest.setParticipantid = parcipantId;
+  leaveRoomRequest.setRoomid(roomId);
+  leaveRoomRequest.setParticipantid(parcipantId);
 
   meetingServiceClient.leaveRoom(leaveRoomRequest, (error, res) => {
     if (error) {
