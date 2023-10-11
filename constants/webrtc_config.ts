@@ -27,20 +27,20 @@ const codecsSupported: Record<string, webrtc.RTCRtpCodecParameters[]> = {
       channels: 2,
     }),
   ],
-  video: [
-    new webrtc.RTCRtpCodecParameters({
-      mimeType: "video/H264",
-      clockRate: 90000,
-    }),
-    new webrtc.RTCRtpCodecParameters({
-      mimeType: "video/VP8",
-      clockRate: 90000,
-    }),
-    new webrtc.RTCRtpCodecParameters({
-      mimeType: "video/AV1",
-      clockRate: 90000,
-    }),
-  ],
+  // video: [
+  //   new webrtc.RTCRtpCodecParameters({
+  //     mimeType: "video/H264",
+  //     clockRate: 90000,
+  //   }),
+  //   new webrtc.RTCRtpCodecParameters({
+  //     mimeType: "video/VP8",
+  //     clockRate: 90000,
+  //   }),
+  //   new webrtc.RTCRtpCodecParameters({
+  //     mimeType: "video/AV1",
+  //     clockRate: 90000,
+  //   }),
+  // ],
 };
 
 const debugPublisher: {
