@@ -1,15 +1,18 @@
 import * as webrtc from "werift";
 
+const TURN_USERNAME = process.env.TURN_USERNAME;
+const TURN_CREDENTIAL = process.env.TURN_CREDENTIAL;
+
 const iceServers = [
   {
     urls: "stun:149.28.156.10:3478",
-    username: "waterbus",
-    credential: "lambiengcode",
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
   },
   {
     urls: "turn:149.28.156.10:3478?transport=udp",
-    username: "waterbus",
-    credential: "lambiengcode",
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL,
   },
 ];
 
