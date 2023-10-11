@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package meeting; 
+
+message LeaveRoomRequest {
+  string roomId = 1;
+  string participantId = 2;
+}
+
+message LeaveRoomResponse {
+  bool succeed = 1;
+}
+
+service MeetingService {
+  rpc leaveRoom(LeaveRoomRequest) returns (LeaveRoomResponse);
+}

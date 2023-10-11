@@ -7,15 +7,24 @@ import rtcManager from "./services/webrtc_manager";
 import SocketEvent from "./constants/socket_events";
 import { credentials } from "@grpc/grpc-js";
 import { AuthServiceClient } from "./protos/auth_grpc_pb";
+import { MeetingServiceClient } from "./protos/meeting_grpc_pb";
 import { VerifyTokenRequest, VerifyTokenResponse } from "./protos/auth_pb";
+import { LeaveRoomRequest, LeaveRoomResponse } from "./protos/meeting_pb";
+import logger from "./helpers/logger";
 
 dotenv.config();
 
 const port = process.env.PORT || 5000;
-const grpcServiceAddress = process.env.GRPC_ADDRESS || "localhost:50051";
+const authGrpcAddress = process.env.AUTH_GRPC_ADDRESS || "localhost:50051";
+const meetingGrpcAddress =
+  process.env.MEETING_GRPC_ADDRESS || "localhost:50051";
 
 const authServiceClient = new AuthServiceClient(
-  grpcServiceAddress,
+  authGrpcAddress,
+  credentials.createInsecure()
+);
+const meetingServiceClient = new MeetingServiceClient(
+  meetingGrpcAddress,
   credentials.createInsecure()
 );
 
@@ -167,14 +176,17 @@ io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
 
   socket.on(SocketEvent.disconnect, function () {
     try {
-      handleLeaveRoom(socket);
+      handleLeaveRoom(socket, true);
     } catch (error) {
       handleError(socket, SocketEvent.disconnect, error.toString());
     }
   });
 });
 
-function handleLeaveRoom(socket: ioInstance.Socket) {
+function handleLeaveRoom(
+  socket: ioInstance.Socket,
+  isNeedEmitToRestful: boolean = false
+) {
   const roomId = socket["roomId"];
   const parcipantId = socket["participantId"];
 
@@ -190,6 +202,20 @@ function handleLeaveRoom(socket: ioInstance.Socket) {
   delete socket["participantId"];
 
   socket.leave(roomId);
+
+  if (!isNeedEmitToRestful) return;
+
+  const leaveRoomRequest = new LeaveRoomRequest();
+  leaveRoomRequest.setRoomid = roomId;
+  leaveRoomRequest.setParticipantid = parcipantId;
+
+  meetingServiceClient.leaveRoom(leaveRoomRequest, (error, res) => {
+    if (error) {
+      logger.error(`${parcipantId} leave room ${roomId} grpc failure`);
+    } else {
+      logger.info(`${parcipantId} leave room ${roomId} grpc success`);
+    }
+  });
 }
 
 function handleError(
