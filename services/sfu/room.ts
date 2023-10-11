@@ -13,7 +13,8 @@ import { PeerConnection } from "./domain/entities/peer";
 import {
   answerType,
   codecsSupported,
-  debugConfiguration,
+  debugPublisher,
+  debugSubscriber,
   iceServers,
   offerType,
 } from "../../constants/webrtc_config";
@@ -39,6 +40,7 @@ export class Room {
           audio: [useSdesMid(), useAbsSendTime()],
         },
         codecs: codecsSupported,
+        debug: debugPublisher,
         iceUseIpv4: true,
         iceUseIpv6: true,
         iceTransportPolicy: "all",
@@ -109,6 +111,7 @@ export class Room {
         audio: [useSdesMid(), useAbsSendTime()],
       },
       codecs: codecsSupported,
+      debug: debugSubscriber,
       iceUseIpv4: true,
       iceUseIpv6: true,
       iceTransportPolicy: "all",

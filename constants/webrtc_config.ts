@@ -28,38 +28,39 @@ const codecsSupported: Record<string, webrtc.RTCRtpCodecParameters[]> = {
     }),
   ],
   video: [
-    // new webrtc.RTCRtpCodecParameters({
-    //   mimeType: "video/H264",
-    //   clockRate: 90000,
-    //   rtcpFeedback: [
-    //     { type: "transport-cc" },
-    //     { type: "ccm", parameter: "fir" },
-    //     { type: "nack" },
-    //     { type: "nack", parameter: "pli" },
-    //     { type: "goog-remb" },
-    //   ],
-    //   parameters:
-    //     "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f",
-    // }),
+    new webrtc.RTCRtpCodecParameters({
+      mimeType: "video/H264",
+      clockRate: 90000,
+    }),
     new webrtc.RTCRtpCodecParameters({
       mimeType: "video/VP8",
+      clockRate: 90000,
+    }),
+    new webrtc.RTCRtpCodecParameters({
+      mimeType: "video/AV1",
       clockRate: 90000,
     }),
   ],
 };
 
-const debugConfiguration: {
+const debugPublisher: {
   inboundPacketLoss: number;
-  outboundPacketLoss: number;
-  receiverReportDelay: number;
   disableSendNack: boolean;
   disableRecvRetransmit: boolean;
 } = {
   inboundPacketLoss: 10,
+  disableSendNack: true,
+  disableRecvRetransmit: true,
+};
+
+const debugSubscriber: {
+  outboundPacketLoss: number;
+  disableSendNack: boolean;
+  disableRecvRetransmit: boolean;
+} = {
   outboundPacketLoss: 5,
-  receiverReportDelay: 100,
-  disableSendNack: false,
-  disableRecvRetransmit: false,
+  disableSendNack: true,
+  disableRecvRetransmit: true,
 };
 
 export {
@@ -67,5 +68,6 @@ export {
   answerType,
   iceServers,
   codecsSupported,
-  debugConfiguration,
+  debugPublisher,
+  debugSubscriber,
 };
