@@ -3487,10 +3487,10 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
 
-werift@^0.18.7:
-  version "0.18.7"
-  resolved "https://registry.yarnpkg.com/werift/-/werift-0.18.7.tgz#4271ac14cefb093cd13be2c00e6cc5b5c6bdd02d"
-  integrity sha512-xlEna5/TIkDhtJ5a8CRXFlg23cgx6cUGaBZv2/u3Duae7bc9TY6R0mGGh6FM2IEB5/yCwUWu6jC7ZS3VFXlIMA==
+werift@^0.18.8:
+  version "0.18.8"
+  resolved "https://registry.yarnpkg.com/werift/-/werift-0.18.8.tgz#b14b24a3d908ffcf268e9f260d09ba0e2e804698"
+  integrity sha512-dHagjEvSZUr7V62XkLwTPiMKqSvfoCulONVbUSSahnav3EcEhQ9Lunk3ZBRczjMBrNuO3l7Z1derPgKcA/49PA==
   dependencies:
     "@fidm/x509" "^1.2.1"
     "@minhducsun2002/leb128" "^1.0.0"

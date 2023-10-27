@@ -13,8 +13,7 @@ import { PeerConnection } from "./domain/entities/peer";
 import {
   answerType,
   codecsSupported,
-  debugPublisher,
-  debugSubscriber,
+  debugConfig,
   iceServers,
   offerType,
 } from "../../constants/webrtc_config";
@@ -43,6 +42,8 @@ export class Room {
         iceUseIpv6: true,
         iceTransportPolicy: "all",
         bundlePolicy: "max-bundle",
+        codecs: codecsSupported,
+        debug: debugConfig,
       });
 
       this.participants[participantId] = {
@@ -68,7 +69,8 @@ export class Room {
         ) {
           logger.info(`[NEW TRACK]: track info
           kind: ${track.kind}
-          codec: ${track.codec.mimeType}`);
+          codec: ${track.codec.mimeType}
+          params: ${track.codec.parameters}`);
           this.participants[participantId].media.addTrack(track);
         } else {
           sleep(100);
@@ -112,6 +114,8 @@ export class Room {
       iceUseIpv6: true,
       iceTransportPolicy: "all",
       bundlePolicy: "max-bundle",
+      codecs: codecsSupported,
+      debug: debugConfig,
     });
 
     this.addSubscriber(peerId, peer);
@@ -128,10 +132,14 @@ export class Room {
     });
 
     const offer = await peer.createOffer();
-    await peer.setLocalDescription(offer);
+    // const sdp = this.filterSdpForH264(offer.sdp);
+
+    const updatedOffer = offer;
+
+    await peer.setLocalDescription(updatedOffer);
 
     return {
-      offer: offer.sdp,
+      offer: updatedOffer.sdp,
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
     };
@@ -261,6 +269,41 @@ export class Room {
         delete this.subscribers[key];
       }
     }
+  }
+
+  private filterSdpForH264(sdp: string): string {
+    // Split the SDP into individual lines
+    const lines = sdp.split('\n');
+
+    // Variables to keep track of video m-line and updated SDP lines
+    let isVideoMLine = false;
+    const updatedLines = [];
+
+    for (const line of lines) {
+        // Check if this line defines a new media section (m=)
+        if (line.startsWith('m=video')) {
+            isVideoMLine = true;
+            updatedLines.push(line);
+        } else if (line.startsWith('m=')) {
+            isVideoMLine = false;
+            updatedLines.push(line);
+        }
+
+        if (isVideoMLine) {
+            // For the video m-line, only include lines related to H.264
+            if (line.includes('H264')) {
+                updatedLines.push(line);
+            }
+        } else {
+            // For other media types, add the lines as they are
+            updatedLines.push(line);
+        }
+    }
+
+    // Join the updated lines back to form the modified SDP
+    const updatedSdp = updatedLines.join('\n');
+
+    return updatedSdp;
   }
 }
 
