@@ -2,7 +2,6 @@ import {
   Kind,
   useAbsSendTime,
   useSdesMid,
-  useSdesRTPStreamId,
   RTCSessionDescription,
   RTCIceCandidate,
 } from "werift";
@@ -15,6 +14,9 @@ import {
   codecsSupported,
   debugConfig,
   iceServers,
+  kAV1Codec,
+  kH264Codec,
+  kOpusCodec,
   offerType,
 } from "../../constants/webrtc_config";
 import Participant from "./domain/entities/participant";
@@ -114,7 +116,10 @@ export class Room {
       iceUseIpv6: true,
       iceTransportPolicy: "all",
       bundlePolicy: "max-bundle",
-      codecs: codecsSupported,
+      codecs: {
+        audio: [kOpusCodec],
+        video: targetMedia.videoCodecs(),
+      },
       debug: debugConfig,
     });
 
@@ -273,35 +278,35 @@ export class Room {
 
   private filterSdpForH264(sdp: string): string {
     // Split the SDP into individual lines
-    const lines = sdp.split('\n');
+    const lines = sdp.split("\n");
 
     // Variables to keep track of video m-line and updated SDP lines
     let isVideoMLine = false;
     const updatedLines = [];
 
     for (const line of lines) {
-        // Check if this line defines a new media section (m=)
-        if (line.startsWith('m=video')) {
-            isVideoMLine = true;
-            updatedLines.push(line);
-        } else if (line.startsWith('m=')) {
-            isVideoMLine = false;
-            updatedLines.push(line);
-        }
+      // Check if this line defines a new media section (m=)
+      if (line.startsWith("m=video")) {
+        isVideoMLine = true;
+        updatedLines.push(line);
+      } else if (line.startsWith("m=")) {
+        isVideoMLine = false;
+        updatedLines.push(line);
+      }
 
-        if (isVideoMLine) {
-            // For the video m-line, only include lines related to H.264
-            if (line.includes('H264')) {
-                updatedLines.push(line);
-            }
-        } else {
-            // For other media types, add the lines as they are
-            updatedLines.push(line);
+      if (isVideoMLine) {
+        // For the video m-line, only include lines related to H.264
+        if (line.includes("H264")) {
+          updatedLines.push(line);
         }
+      } else {
+        // For other media types, add the lines as they are
+        updatedLines.push(line);
+      }
     }
 
     // Join the updated lines back to form the modified SDP
-    const updatedSdp = updatedLines.join('\n');
+    const updatedSdp = updatedLines.join("\n");
 
     return updatedSdp;
   }
