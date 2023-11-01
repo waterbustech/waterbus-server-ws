@@ -28,6 +28,8 @@ export class Room {
 
   async join(
     sdp: string,
+    isVideoEnabled: boolean,
+    isAudioEnabled: boolean,
     participantId: string,
     { callback }: { callback: () => void }
   ) {
@@ -50,7 +52,7 @@ export class Room {
 
       this.participants[participantId] = {
         peer: peer,
-        media: this.createMedia(participantId, peer),
+        media: this.createMedia(participantId, isVideoEnabled, isAudioEnabled, peer),
       };
 
       peer.onconnectionstatechange = () => {
@@ -239,8 +241,9 @@ export class Room {
   }
 
   // MARK: private
-  private createMedia(publisherId: string, peer: PeerConnection): Media {
-    const media = new Media(publisherId);
+  private createMedia(publisherId: string,isVideoEnabled: boolean,
+    isAudioEnabled: boolean, peer: PeerConnection): Media {
+    const media = new Media(publisherId, isVideoEnabled, isAudioEnabled);
 
     const transceiver = peer.addTransceiver("video", { direction: "recvonly" });
     media.initAV(transceiver);

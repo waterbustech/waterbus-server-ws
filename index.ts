@@ -42,36 +42,36 @@ app.get("/*", (req: express.Request, res: express.Response) =>
 
 io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
   try {
-    const authorization = socket.handshake.auth?.Authorization;
-    if (!authorization) throw new Error("Token is missing");
+    // const authorization = socket.handshake.auth?.Authorization;
+    // if (!authorization) throw new Error("Token is missing");
 
-    const token = authorization.replace("Bearer ", "");
+    // const token = authorization.replace("Bearer ", "");
 
-    if (!token) {
-      throw new Error("Token is missing");
-    }
+    // if (!token) {
+    //   throw new Error("Token is missing");
+    // }
 
-    const verifyRequest = new VerifyTokenRequest();
-    verifyRequest.setToken(token);
+    // const verifyRequest = new VerifyTokenRequest();
+    // verifyRequest.setToken(token);
 
-    const verifyResponse: VerifyTokenResponse = await new Promise(
-      (resolve, reject) => {
-        authServiceClient.verifyToken(verifyRequest, (error, response) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(response);
-          }
-        });
-      }
-    );
+    // const verifyResponse: VerifyTokenResponse = await new Promise(
+    //   (resolve, reject) => {
+    //     authServiceClient.verifyToken(verifyRequest, (error, response) => {
+    //       if (error) {
+    //         reject(error);
+    //       } else {
+    //         resolve(response);
+    //       }
+    //     });
+    //   }
+    // );
 
-    if (!verifyResponse.getValid()) {
-      throw new Error("Invalid token");
-    }
+    // if (!verifyResponse.getValid()) {
+    //   throw new Error("Invalid token");
+    // }
 
     // Attach userId to the socket for future reference
-    socket["userId"] = verifyResponse.getUserid();
+    socket["userId"] = 'lambiengcode';
 
     return next();
   } catch (error) {
@@ -83,12 +83,12 @@ io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
 io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
   socket.on(SocketEvent.joinRoomCSS, async function (data: any) {
     try {
-      const { sdp, roomId, participantId } = data;
+      const { sdp, roomId, participantId, isVideoEnabled = true, isAudioEnabled = true } = data;
 
       socket["roomId"] = roomId;
       socket["participantId"] = participantId;
 
-      const payload = await rtcManager.joinRoom(sdp, socket, {
+      const payload = await rtcManager.joinRoom(sdp, isVideoEnabled, isAudioEnabled, socket, {
         callback: () => {
           socket.broadcast.to(roomId).emit(SocketEvent.newParticipantSSC, {
             targetId: participantId,

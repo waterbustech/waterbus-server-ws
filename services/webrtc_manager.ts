@@ -8,6 +8,8 @@ class WebRTCManager {
 
   async joinRoom(
     sdp: string,
+    isVideoEnabled: boolean,
+    isAudioEnabled: boolean,
     socket: any,
     { callback }: { callback: () => void }
   ) {
@@ -20,7 +22,7 @@ class WebRTCManager {
 
       const room = this.rooms[roomId];
 
-      const { offer, otherParticipants } = await room.join(sdp, participantId, {
+      const { offer, otherParticipants } = await room.join(sdp, isVideoEnabled, isAudioEnabled, participantId, {
         callback: callback,
       });
 
