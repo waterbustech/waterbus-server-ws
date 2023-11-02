@@ -22,9 +22,15 @@ class WebRTCManager {
 
       const room = this.rooms[roomId];
 
-      const { offer, otherParticipants } = await room.join(sdp, isVideoEnabled, isAudioEnabled, participantId, {
-        callback: callback,
-      });
+      const { offer, otherParticipants } = await room.join(
+        sdp,
+        isVideoEnabled,
+        isAudioEnabled,
+        participantId,
+        {
+          callback: callback,
+        }
+      );
 
       return {
         sdp: offer,
@@ -118,6 +124,16 @@ class WebRTCManager {
     if (!room) return;
 
     room.setVideoEnabled(parcipantId, isEnabled);
+  }
+
+  async setScreenSharing(socket, isSharing: boolean) {
+    const { roomId, parcipantId } = socket;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setScreenSharing(parcipantId, isSharing);
   }
 
   async leaveRoom(roomId: string, parcipantId: string) {

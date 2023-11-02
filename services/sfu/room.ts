@@ -217,6 +217,12 @@ export class Room {
     this.participants[parcipantId].media.audioEnabled = isEnabled;
   }
 
+  setScreenSharing(parcipantId: string, isSharing: boolean) {
+    if (!this.participants[parcipantId]) return;
+
+    this.participants[parcipantId].media.isScreenSharing = isSharing;
+  }
+
   async leave(participantId: string) {
     logger.info(`[IN_ROOM] ${participantId} has left`);
     this.removeAllSubscribersWithTargetId(participantId);

@@ -71,7 +71,7 @@ io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
     // }
 
     // Attach userId to the socket for future reference
-    socket["userId"] = 'lambiengcode';
+    socket["userId"] = "lambiengcode";
 
     return next();
   } catch (error) {
@@ -83,18 +83,30 @@ io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
 io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
   socket.on(SocketEvent.joinRoomCSS, async function (data: any) {
     try {
-      const { sdp, roomId, participantId, isVideoEnabled = true, isAudioEnabled = true } = data;
+      const {
+        sdp,
+        roomId,
+        participantId,
+        isVideoEnabled = true,
+        isAudioEnabled = true,
+      } = data;
 
       socket["roomId"] = roomId;
       socket["participantId"] = participantId;
 
-      const payload = await rtcManager.joinRoom(sdp, isVideoEnabled, isAudioEnabled, socket, {
-        callback: () => {
-          socket.broadcast.to(roomId).emit(SocketEvent.newParticipantSSC, {
-            targetId: participantId,
-          });
-        },
-      });
+      const payload = await rtcManager.joinRoom(
+        sdp,
+        isVideoEnabled,
+        isAudioEnabled,
+        socket,
+        {
+          callback: () => {
+            socket.broadcast.to(roomId).emit(SocketEvent.newParticipantSSC, {
+              targetId: participantId,
+            });
+          },
+        }
+      );
 
       socket.join(roomId);
 
@@ -162,6 +174,22 @@ io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
 
     socket.broadcast.to(roomId).emit(SocketEvent.setAudioEnabledSSC, {
       isEnabled,
+      participantId: targetId,
+    });
+  });
+
+  socket.on(SocketEvent.setScreenSharingCSS, async function (data: any) {
+    const roomId = socket["roomId"];
+    const targetId = socket["participantId"];
+
+    if (!roomId) return;
+
+    const { isSharing } = data;
+
+    rtcManager.setScreenSharing(socket, isSharing);
+
+    socket.broadcast.to(roomId).emit(SocketEvent.setScreenSharingSSC, {
+      isSharing,
       participantId: targetId,
     });
   });

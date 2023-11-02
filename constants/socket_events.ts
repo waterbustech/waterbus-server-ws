@@ -15,6 +15,8 @@ const SocketEvent = {
   setVideoEnabledSSC: "SET_VIDEO_ENABLED_SSC",
   setAudioEnabledCSS: "SET_AUDIO_ENABLED_CSS",
   setAudioEnabledSSC: "SET_AUDIO_ENABLED_SSC",
+  setScreenSharingSSC: "SET_SCREEN_SHARING_SSC",
+  setScreenSharingCSS: "SET_SCREEN_SHARING_CSS",
   connection: "connection",
   disconnect: "disconnect",
 } as const;
