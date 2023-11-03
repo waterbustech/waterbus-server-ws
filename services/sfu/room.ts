@@ -52,7 +52,12 @@ export class Room {
 
       this.participants[participantId] = {
         peer: peer,
-        media: this.createMedia(participantId, isVideoEnabled, isAudioEnabled, peer),
+        media: this.createMedia(
+          participantId,
+          isVideoEnabled,
+          isAudioEnabled,
+          peer
+        ),
       };
 
       peer.onconnectionstatechange = () => {
@@ -149,6 +154,7 @@ export class Room {
       offer: updatedOffer.sdp,
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
+      isScreenSharing: targetMedia.isScreenSharing,
     };
   }
 
@@ -247,8 +253,12 @@ export class Room {
   }
 
   // MARK: private
-  private createMedia(publisherId: string,isVideoEnabled: boolean,
-    isAudioEnabled: boolean, peer: PeerConnection): Media {
+  private createMedia(
+    publisherId: string,
+    isVideoEnabled: boolean,
+    isAudioEnabled: boolean,
+    peer: PeerConnection
+  ): Media {
     const media = new Media(publisherId, isVideoEnabled, isAudioEnabled);
 
     const transceiver = peer.addTransceiver("video", { direction: "recvonly" });
