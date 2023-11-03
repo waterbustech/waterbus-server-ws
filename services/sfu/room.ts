@@ -155,6 +155,7 @@ export class Room {
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
       isScreenSharing: targetMedia.isScreenSharing,
+      videoCodec: targetMedia.codec,
     };
   }
 
