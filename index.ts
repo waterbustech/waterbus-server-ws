@@ -83,13 +83,8 @@ io.use(async (socket: ioInstance.Socket, next: (err?: any) => void) => {
 io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
   socket.on(SocketEvent.joinRoomCSS, async function (data: any) {
     try {
-      const {
-        sdp,
-        roomId,
-        participantId,
-        isVideoEnabled = true,
-        isAudioEnabled = true,
-      } = data;
+      const { sdp, roomId, participantId, isVideoEnabled, isAudioEnabled } =
+        data;
 
       socket["roomId"] = roomId;
       socket["participantId"] = participantId;

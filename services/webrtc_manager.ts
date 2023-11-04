@@ -61,6 +61,9 @@ class WebRTCManager {
           });
         },
       });
+
+      console.log({ offer });
+
       return offer;
     } catch (error) {
       logger.error(
