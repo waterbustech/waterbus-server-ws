@@ -14,8 +14,6 @@ import {
   codecsSupported,
   debugConfig,
   iceServers,
-  kAV1Codec,
-  kH264Codec,
   kOpusCodec,
   offerType,
 } from "../../constants/webrtc_config";
@@ -155,6 +153,7 @@ export class Room {
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
       isScreenSharing: targetMedia.isScreenSharing,
+      isE2eeEnabled: targetMedia.isE2eeEnabled,
       videoCodec: targetMedia.codec,
     };
   }
@@ -210,6 +209,12 @@ export class Room {
 
   getOtherParticipants(participantId: string): string[] {
     return Object.keys(this.participants).filter((id) => id != participantId);
+  }
+
+  setE2eeEnabled(parcipantId: string, isEnabled: boolean) {
+    if (!this.participants[parcipantId]) return;
+
+    this.participants[parcipantId].media.isE2eeEnabled = isEnabled;
   }
 
   setVideoEnabled(parcipantId: string, isEnabled: boolean) {

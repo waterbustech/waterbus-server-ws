@@ -146,6 +146,22 @@ io.on(SocketEvent.connection, function (socket: ioInstance.Socket) {
     await rtcManager.addSubscriberIceCandidate(socket, targetId, candidate);
   });
 
+  socket.on(SocketEvent.setE2eeEnabledCSS, async function (data: any) {
+    const roomId = socket["roomId"];
+    const targetId = socket["participantId"];
+
+    if (!roomId) return;
+
+    const { isEnabled } = data;
+
+    rtcManager.setE2eeEnabled(socket, isEnabled);
+
+    socket.broadcast.to(roomId).emit(SocketEvent.setE2eeEnabledSSC, {
+      isEnabled,
+      participantId: targetId,
+    });
+  });
+
   socket.on(SocketEvent.setVideoEnabledCSS, async function (data: any) {
     const roomId = socket["roomId"];
     const targetId = socket["participantId"];

@@ -126,6 +126,16 @@ class WebRTCManager {
     room.setVideoEnabled(parcipantId, isEnabled);
   }
 
+  async setE2eeEnabled(socket, isEnabled: boolean) {
+    const { roomId, parcipantId } = socket;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setE2eeEnabled(parcipantId, isEnabled);
+  }
+
   async setScreenSharing(socket, isSharing: boolean) {
     const { roomId, parcipantId } = socket;
 

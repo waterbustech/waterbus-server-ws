@@ -19,10 +19,15 @@ export class Media {
   transceiver?: RTCRtpTransceiver;
   videoEnabled: boolean = true;
   audioEnabled: boolean = true;
+  isE2eeEnabled: boolean = false;
   isScreenSharing: boolean = false;
   codec: String;
 
-  constructor(readonly publisherId: string, readonly isVideoEnabled: boolean, readonly isAudioEnabled: boolean) {
+  constructor(
+    readonly publisherId: string,
+    readonly isVideoEnabled: boolean,
+    readonly isAudioEnabled: boolean
+  ) {
     this.videoEnabled = isVideoEnabled;
     this.audioEnabled = isAudioEnabled;
   }
