@@ -28,6 +28,7 @@ export class Room {
     sdp: string,
     isVideoEnabled: boolean,
     isAudioEnabled: boolean,
+    isE2eeEnabled: boolean,
     participantId: string,
     { callback }: { callback: () => void }
   ) {
@@ -54,6 +55,7 @@ export class Room {
           participantId,
           isVideoEnabled,
           isAudioEnabled,
+          isE2eeEnabled,
           peer
         ),
       };
@@ -214,19 +216,19 @@ export class Room {
   setE2eeEnabled(parcipantId: string, isEnabled: boolean) {
     if (!this.participants[parcipantId]) return;
 
-    this.participants[parcipantId].media.isE2eeEnabled = isEnabled;
+    this.participants[parcipantId].media.setE2eeEnabled(isEnabled);
   }
 
   setVideoEnabled(parcipantId: string, isEnabled: boolean) {
     if (!this.participants[parcipantId]) return;
 
-    this.participants[parcipantId].media.videoEnabled = isEnabled;
+    this.participants[parcipantId].media.setVideoEnabled(isEnabled);
   }
 
   setAudioEnabled(parcipantId: string, isEnabled: boolean) {
     if (!this.participants[parcipantId]) return;
 
-    this.participants[parcipantId].media.audioEnabled = isEnabled;
+    this.participants[parcipantId].media.setAudioEnabled(isEnabled);
   }
 
   setScreenSharing(parcipantId: string, isSharing: boolean) {
@@ -263,9 +265,15 @@ export class Room {
     publisherId: string,
     isVideoEnabled: boolean,
     isAudioEnabled: boolean,
+    isE2eeEnabled: boolean,
     peer: PeerConnection
   ): Media {
-    const media = new Media(publisherId, isVideoEnabled, isAudioEnabled);
+    const media = new Media(
+      publisherId,
+      isVideoEnabled,
+      isAudioEnabled,
+      isE2eeEnabled
+    );
 
     const transceiver = peer.addTransceiver("video", { direction: "recvonly" });
     media.initAV(transceiver);
@@ -299,41 +307,6 @@ export class Room {
         delete this.subscribers[key];
       }
     }
-  }
-
-  private filterSdpForH264(sdp: string): string {
-    // Split the SDP into individual lines
-    const lines = sdp.split("\n");
-
-    // Variables to keep track of video m-line and updated SDP lines
-    let isVideoMLine = false;
-    const updatedLines = [];
-
-    for (const line of lines) {
-      // Check if this line defines a new media section (m=)
-      if (line.startsWith("m=video")) {
-        isVideoMLine = true;
-        updatedLines.push(line);
-      } else if (line.startsWith("m=")) {
-        isVideoMLine = false;
-        updatedLines.push(line);
-      }
-
-      if (isVideoMLine) {
-        // For the video m-line, only include lines related to H.264
-        if (line.includes("H264")) {
-          updatedLines.push(line);
-        }
-      } else {
-        // For other media types, add the lines as they are
-        updatedLines.push(line);
-      }
-    }
-
-    // Join the updated lines back to form the modified SDP
-    const updatedSdp = updatedLines.join("\n");
-
-    return updatedSdp;
   }
 }
 

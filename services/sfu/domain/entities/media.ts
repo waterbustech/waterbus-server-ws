@@ -26,10 +26,12 @@ export class Media {
   constructor(
     readonly publisherId: string,
     readonly isVideoEnabled: boolean,
-    readonly isAudioEnabled: boolean
+    readonly isAudioEnabled: boolean,
+    readonly e2eeEnabled: boolean,
   ) {
     this.videoEnabled = isVideoEnabled;
     this.audioEnabled = isAudioEnabled;
+    this.isE2eeEnabled = e2eeEnabled;
   }
 
   initAV(transceiver: RTCRtpTransceiver) {
@@ -68,6 +70,22 @@ export class Media {
     return {
       publisherId: this.publisherId,
     };
+  }
+
+  setVideoEnabled(isEnable: boolean) {
+    this.videoEnabled = isEnable;
+
+    console.log(`VIDEO: ${this.videoEnabled}`);
+  }
+
+  setAudioEnabled(isEnable: boolean) {
+    this.audioEnabled = isEnable;
+
+    console.log(`AUDIO: ${this.audioEnabled}`);
+  }
+
+  setE2eeEnabled(isEnable: boolean) {
+    this.isE2eeEnabled = isEnable;
   }
 }
 

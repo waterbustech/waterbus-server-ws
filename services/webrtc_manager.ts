@@ -10,6 +10,7 @@ class WebRTCManager {
     sdp: string,
     isVideoEnabled: boolean,
     isAudioEnabled: boolean,
+    isE2eeEnabled: boolean,
     socket: any,
     { callback }: { callback: () => void }
   ) {
@@ -26,6 +27,7 @@ class WebRTCManager {
         sdp,
         isVideoEnabled,
         isAudioEnabled,
+        isE2eeEnabled,
         participantId,
         {
           callback: callback,
@@ -61,8 +63,6 @@ class WebRTCManager {
           });
         },
       });
-
-      console.log({ offer });
 
       return offer;
     } catch (error) {
@@ -110,43 +110,43 @@ class WebRTCManager {
   }
 
   async setAudioEnabled(socket, isEnabled: boolean) {
-    const { roomId, parcipantId } = socket;
+    const { roomId, participantId } = socket;
 
     const room = this.rooms[roomId];
 
     if (!room) return;
 
-    room.setAudioEnabled(parcipantId, isEnabled);
+    room.setAudioEnabled(participantId, isEnabled);
   }
 
   async setVideoEnabled(socket, isEnabled: boolean) {
-    const { roomId, parcipantId } = socket;
+    const { roomId, participantId } = socket;
 
     const room = this.rooms[roomId];
 
     if (!room) return;
 
-    room.setVideoEnabled(parcipantId, isEnabled);
+    room.setVideoEnabled(participantId, isEnabled);
   }
 
   async setE2eeEnabled(socket, isEnabled: boolean) {
-    const { roomId, parcipantId } = socket;
+    const { roomId, participantId } = socket;
 
     const room = this.rooms[roomId];
 
     if (!room) return;
 
-    room.setE2eeEnabled(parcipantId, isEnabled);
+    room.setE2eeEnabled(participantId, isEnabled);
   }
 
   async setScreenSharing(socket, isSharing: boolean) {
-    const { roomId, parcipantId } = socket;
+    const { roomId, participantId } = socket;
 
     const room = this.rooms[roomId];
 
     if (!room) return;
 
-    room.setScreenSharing(parcipantId, isSharing);
+    room.setScreenSharing(participantId, isSharing);
   }
 
   async leaveRoom(roomId: string, parcipantId: string) {
