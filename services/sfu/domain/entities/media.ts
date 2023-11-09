@@ -11,6 +11,8 @@ import {
   kAV1Codec,
   kH264Codec,
   kVP8Codec,
+  kVP9Codec,
+  kH265Codec,
 } from "../../../../constants/webrtc_config";
 
 export class Media {
@@ -55,10 +57,14 @@ export class Media {
 
   videoCodecs(): RTCRtpCodecParameters[] {
     switch (this.codec) {
-      case kH264Codec.mimeType:
-        return [kH264Codec];
       case kVP8Codec.mimeType:
         return [kVP8Codec];
+      case kVP9Codec.mimeType:
+        return [kVP9Codec];
+      case kH264Codec.mimeType:
+        return [kH264Codec];
+      case kH265Codec.mimeType:
+        return [kH265Codec];
       case kAV1Codec.mimeType:
         return [kAV1Codec];
       default:

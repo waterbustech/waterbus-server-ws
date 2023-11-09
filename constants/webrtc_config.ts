@@ -27,9 +27,21 @@ const kH264Codec: webrtc.RTCRtpCodecParameters =
       "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
   });
 
+const kH265Codec: webrtc.RTCRtpCodecParameters =
+  new webrtc.RTCRtpCodecParameters({
+    mimeType: "video/H265",
+    clockRate: 90000,
+  }); 
+
 const kVP8Codec: webrtc.RTCRtpCodecParameters =
   new webrtc.RTCRtpCodecParameters({
     mimeType: "video/VP8",
+    clockRate: 90000,
+  });
+
+  const kVP9Codec: webrtc.RTCRtpCodecParameters =
+  new webrtc.RTCRtpCodecParameters({
+    mimeType: "video/VP9",
     clockRate: 90000,
   });
 
@@ -48,7 +60,7 @@ const kOpusCodec: webrtc.RTCRtpCodecParameters =
 
 const codecsSupported: Record<string, webrtc.RTCRtpCodecParameters[]> = {
   audio: [kOpusCodec],
-  video: [kH264Codec, kVP8Codec, kAV1Codec],
+  video: [kVP8Codec, kVP9Codec, kH264Codec, kH265Codec, kAV1Codec],
 };
 
 const debugConfig: {
@@ -66,7 +78,9 @@ export {
   codecsSupported,
   debugConfig,
   kH264Codec,
+  kH265Codec,
   kVP8Codec,
+  kVP9Codec,
   kAV1Codec,
   kOpusCodec,
 };
