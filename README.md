@@ -2,15 +2,35 @@
 
 <img src="./images/waterbus-banner-sfu-server.png" width="100%"/>
 
-## Quick start
+## Codec supported
+| Codec | VP8 | VP9 | H264 | H265  ![Beta](https://img.shields.io/badge/beta-green) | AV1 |
+| :-----: | :---------------: | :------------: | :------------: | :----------------: | :--------------------------------: |
+|   iOS   |        🟢         |       🟢       |       🟢       |         🟢         |         🟢         |
+| Android |        🟢         |       🟢       |       🟢       |         🟡         |         🟢         |
 
-- Clone this repository
+
+🟢 = Available
+
+🟡 = Coming soon (Work in progress)
+
+🔴 = Not currently available (Possibly in the future)
+
+## 🚀 Getting Started
+
+### 🔧 Installation
+
+1. Clone this repository
 
 ```bash
-git clone 
+git clone https://github.com/waterbustech/waterbus-sfu-meeting.git
 ```
 
-- Install dependencies
+2. Change to the project directory:
+```sh
+cd waterbus-sfu-meeting
+```
+
+3. Install the dependencies:
 
 ```bash
 npm install
@@ -22,7 +42,7 @@ or
 yarn
 ```
 
-- Config .env
+4. Config .env
 
 ```bash
 mv example.env .env
@@ -30,7 +50,7 @@ mv example.env .env
 
 fill out your config in `.env`
 
-- Start project
+### 🤖 Running waterbus
 
 ```bash
 npm run start 
