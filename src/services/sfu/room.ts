@@ -13,18 +13,21 @@ import {
   answerType,
   codecsSupported,
   debugConfig,
-  iceServers,
   kOpusCodec,
   offerType,
 } from '../../constants/webrtc_config';
 import Participant from './domain/entities/participant';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { EnvironmentConfigService } from 'src/config/environments';
 
 export class Room {
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
 
   private logger: Logger = new Logger('Room');
+
+  constructor(private environment: EnvironmentConfigService) {}
 
   async join(
     sdp: string,
@@ -38,7 +41,7 @@ export class Room {
       let hasEmitNewParticipantJoined = false;
 
       const peer = new PeerConnection({
-        iceServers: iceServers,
+        iceServers: this.environment.getIceServers(),
         headerExtensions: {
           video: [useSdesMid(), useAbsSendTime()],
           audio: [useSdesMid(), useAbsSendTime()],
@@ -119,7 +122,7 @@ export class Room {
 
     const peerId = this.getSubscriberPeerId(targetId, participantId);
     const peer = new PeerConnection({
-      iceServers: iceServers,
+      iceServers: this.environment.getIceServers(),
       headerExtensions: {
         video: [useSdesMid(), useAbsSendTime()],
         audio: [useSdesMid(), useAbsSendTime()],

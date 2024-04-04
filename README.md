@@ -1,73 +1,109 @@
+> [!IMPORTANT]  
+> Waterbus SFU WebSocket is updating to v2
+
+<img src="./images/banner-server-ws.png" width="100%"/>
+<h2 align="center">Waterbus Server API</h2>
+<div class="badges" align="center">
+<p><a href="https://codecov.io/gh/lambiengcode/waterbus"><img src="https://codecov.io/gh/lambiengcode/waterbus/branch/main/graph/badge.svg?token=7KEMH26LHZ" alt="codecov"></a><a href="https://www.codefactor.io/repository/github/lambiengcode/waterbus"><img src="https://www.codefactor.io/repository/github/lambiengcode/waterbus/badge" alt="CodeFactor"></a><img src="https://img.shields.io/github/actions/workflow/status/lambiengcode/waterbus/ci.yml" alt="GitHub Workflow Status (with event)"><img src="https://img.shields.io/github/issues/lambiengcode/waterbus" alt="GitHub issues"><a href="https://chromium.googlesource.com/external/webrtc/+/branch-heads/6099"><img src="https://img.shields.io/badge/libwebrtc-122.6261.01-yellow.svg" alt="libwebrtc"></a><img src="https://img.shields.io/cocoapods/v/KaiRTC" alt="Cocoapods Version"><a href="https://github.com/lambiengcode"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat&amp;logo=github" alt="PRs Welcome"></a></p>
+</div>
+<div align="center">
+<a href="https://twitter.com/waterbustech"><img src="https://img.shields.io/twitter/follow/waterbus.tech?style=social" alt="Twitter Follow"></a><a href="https://discord.gg/mfrWVefU"><img alt="Discord" src="https://img.shields.io/discord/1220616225521143818"></a>
+</div>
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <a href="https://docs.waterbus.tech">Website</a> &bull;
+  <a href="https://github.com/lambiengcode/waterbus/wiki">Wiki</a> &bull;
+  <a href="https://github.com/lambiengcode/waterbus/blob/main/LICENSE">License</a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Introduction](#introduction)
+  - [WebRTC SFU](#webrtc-sfu)
+  - [Features](#features)
+- [Quick run](#quick-run)
+  - [Requirements](#requirements)
+- [Links](#links)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Introduction
 
-## Description
+- 🤙 Waterbus is open source video conferencing multiplatform app built on latest WebRTC SDK. This is server api for the application. 
+- 🎯 Waterbus aims for scalability and low latency as well as self-hosted and offers many useful features for everyday interviews or meetings.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### WebRTC SFU
 
-## Installation
+<div align="center">
+<img src="./images/waterbus-sfu-ws-light.gif#gh-light-mode-only" width=100%/>
+<img src="./images/waterbus-sfu-ws-dark.gif#gh-dark-mode-only" width=100%/>
+</div>
 
-```bash
-$ yarn install
+At times, the term is used to describe a type of video routing device, while at other times it will be used to indicate the support of routing technology and not a specific device. An SFU is a media server component capable of receiving multiple media streams and then deciding which of these media streams should be sent to which participants. Its main use is in supporting group calls and live streaming/broadcast scenarios.
+
+- In this case, each participant still sends just one set of video and audio up to the SFU, like our MCU. However, the SFU doesn’t make any composite streams. Rather, it sends a different stream down for each user. In this example, 4 streams are received by each participant, since there are 5 people in the call.
+- The good thing about this is it’s still less work on each participant than a mesh peer-to-peer model. This is because each participant is only establishing one connection (to the SFU) instead of to all other participants to upload their own video/audio. But, it can be more bandwidth intensive than the MCU because the participants each receive multiple streams downloaded.
+- The nice thing for participants about receiving separate streams is that they can do whatever they want with them. They are not bound to layout or UI decisions of the MCU. If you have been in a conference call where the conferencing tool allowed you to choose a different layout (ie, which speaker’s video will be most prominent, or how you want to arrange the videos on the screen), then that was using an SFU.
+- Media servers which implement an SFU architecture include Jitsi and Janus.
+
+🫧 SFU performance
+
+WebRTC SFUs are the most common media server architecture today when implementing large group meetings and live streaming services. The reason for that is that it gives the best return on investment. You will find SFU implementations in most video conferencing and group video meeting applications. In audio-only use cases they are a bit less popular, though there are a few that use them in these cases as well.
+
+SFUs don’t process the media but rather route it around. As such, they consume considerably less CPU than their MCU alternative. Their performance relies heavily on network throughput.
+
+When deploying SFU servers, it is recommended to place them as close as possible to the users that need to connect to them, spreading them geographically across the globe.
+
+### Features
+
+- [x] Meetings
+  - [x] Publish/Subscribe
+  - [x] On/off camera, microphone
+  - [x] Screen sharing
+  - [x] Multiple codecs
+  - [x] Emit to others new participant
+  - [x] Edit to others participant has left
+- [ ] Chats
+  - [ ] Send message
+  - [ ] Edit message
+  - [ ] Delete message
+
+## Quick run
+
+### Requirements
+
+Before getting started, ensure you have the following software installed:
+
+- `Node.js`
+- `NestJS CLI`
+- `Redis`
+
+- Clone repository
+
+```sh
+git clone https://github.com/waterbustech/waterbus-server-ws.git
+cd waterbus-server-ws/
 ```
 
-## Running the app
+- Create .env file
 
-```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+```sh
+cp env-example .env
 ```
 
-## Test
+- Install dependencies
 
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+```sh
+yarn
 ```
 
-## Support
+- Start server
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```sh
+yarn start
+```
 
-## Stay in touch
+## Links
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Check document at [docs.waterbus.tech](https://docs.waterbus.tech)
+- Flutter app [repository](https://github.com/lambiengcode/waterbus)
+- Waterbus Server API [repository](https://github.com/waterbustech/waterbus-server-api)
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+<h4 align="center">Built with 💙 by the Waterbus team.</h4>

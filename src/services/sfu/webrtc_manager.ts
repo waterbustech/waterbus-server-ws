@@ -4,13 +4,14 @@ import SocketEvent from '../../constants/socket_events';
 import { Room } from './room';
 import { Injectable } from '@nestjs/common';
 import ISocketClient from 'src/models/user.interface';
+import { EnvironmentConfigService } from 'src/config/environments';
 
 @Injectable()
 export class WebRTCManager {
   private rooms: Record<string, Room> = {};
   private clients: Record<string, IClient> = {};
 
-  constructor() {}
+  constructor(private environment: EnvironmentConfigService) {}
 
   async joinRoom(
     clientId: string,
@@ -30,7 +31,7 @@ export class WebRTCManager {
       const participantId = clientInfo.participantId;
 
       if (!this.rooms[roomId]) {
-        this.rooms[roomId] = new Room();
+        this.rooms[roomId] = new Room(this.environment);
       }
 
       const room = this.rooms[roomId];
