@@ -5,6 +5,7 @@ import {
   interval,
   lastValueFrom,
   map,
+  retry,
   Subject,
   Subscription,
   switchMap,
@@ -36,18 +37,16 @@ export class MeetingGrpcService implements OnModuleInit {
       next: (status) => {
         this.isConnected = status;
         if (!status) {
-          this.logger.log('Retry to connect...');
-          this.$reconnect = interval(1000)
+          this.$reconnect = interval(5000)
             .pipe()
             .subscribe({
               next: () => {
-                this.logger.log('Connecting...');
+                this.logger.log('Retry to connect...');
                 this.connect();
-                this.$connectionSubject.next(true);
+                this.checkConnection();
               },
             });
         } else {
-          this.logger.log('Connected');
           this.$reconnect.unsubscribe();
         }
       },
@@ -59,6 +58,24 @@ export class MeetingGrpcService implements OnModuleInit {
       this.meetingClientProxy,
       'MeetingService',
     ).getInstance();
+  }
+
+  private checkConnection(): void {
+    this.meetingService
+      .ping({ message: 'ping' })
+      .pipe(timeout(500), retry(3))
+      .subscribe({
+        next: (result) => {
+          this.logger.log('Connected');
+          const status = result?.message === 'ping';
+          if (this.isConnected !== status) {
+            this.$connectionSubject.next(status);
+          }
+        },
+        error: () => {
+          if (this.isConnected) this.$connectionSubject.next(false);
+        },
+      });
   }
 
   async leaveRoom(data: meeting.LeaveRoomRequest): Promise<boolean> {
