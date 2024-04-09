@@ -24,7 +24,7 @@ export class Media {
   isE2eeEnabled: boolean = false;
   isScreenSharing: boolean = false;
   cameraType: number = 0; // 0: front | 1: rear
-  codec: String;
+  codec: string;
 
   constructor(
     readonly publisherId: string,

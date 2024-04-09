@@ -207,7 +207,7 @@ export class MeetingGateway {
 
   @SubscribeMessage(SocketEvent.leaveRoomCSS)
   handleLeaveRoom(client: ISocketClient, payload: any): any {
-    let info = this.rtcManager.leaveRoom({ clientId: client.id });
+    const info = this.rtcManager.leaveRoom({ clientId: client.id });
 
     if (info) {
       client.broadcast.to(info.roomId).emit(SocketEvent.participantHasLeftSSC, {

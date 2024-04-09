@@ -1,5 +1,5 @@
-import { Media } from "./media";
-import { PeerConnection } from "./peer";
+import { Media } from './media';
+import { PeerConnection } from './peer';
 
 interface Participant {
   media: Media;

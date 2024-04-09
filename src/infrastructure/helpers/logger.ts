@@ -1,33 +1,33 @@
-import * as winston from "winston";
+import * as winston from 'winston';
 
 const customFormat = winston.format.printf(({ timestamp, level, message }) => {
-  let icon = "";
+  let icon = '';
   switch (level) {
-    case "info":
-      icon = "🦋";
+    case 'info':
+      icon = '🦋';
       break;
-    case "warn":
-      icon = "⚠️";
+    case 'warn':
+      icon = '⚠️';
       break;
-    case "error":
-      icon = "🐞";
+    case 'error':
+      icon = '🐞';
       break;
     default:
-      icon = "";
+      icon = '';
       break;
   }
   return `${icon} [${timestamp}][${level}]: ${message}`;
 });
 
 const logger = winston.createLogger({
-  level: "info",
+  level: 'info',
   format: winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp(),
-    customFormat
+    customFormat,
   ),
   transports: [
-    new winston.transports.File({ filename: "app.log", level: "info" }),
+    new winston.transports.File({ filename: 'app.log', level: 'info' }),
     new winston.transports.Console(),
   ],
 });

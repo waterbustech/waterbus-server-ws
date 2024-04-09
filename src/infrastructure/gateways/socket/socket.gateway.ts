@@ -45,7 +45,7 @@ export class SocketGateway
 
   async handleDisconnect(client: ISocketClient) {
     try {
-      let info = this.rtcManager.leaveRoom({ clientId: client.id });
+      const info = this.rtcManager.leaveRoom({ clientId: client.id });
 
       if (info) {
         client.broadcast
@@ -56,7 +56,7 @@ export class SocketGateway
 
         client.leave(info.roomId);
 
-        let succeed = await this.meetingService.leaveRoom(info);
+        const succeed = await this.meetingService.leaveRoom(info);
         this.logger.debug(`Update leave room in grpc: ${succeed}`);
       }
       this.logger.debug(`Client disconnected: ${client.id}`);
