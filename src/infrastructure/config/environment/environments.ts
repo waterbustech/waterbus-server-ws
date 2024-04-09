@@ -14,6 +14,14 @@ export class EnvironmentConfigService {
     return this.configService.get<string>('REDIS_URL');
   }
 
+  getRealtimeGrpcUrl(): string {
+    return this.configService.get<string>('WEBSOCKET_GRPC_ADDRESS');
+  }
+
+  getAuthGrpcUrl(): string {
+    return this.configService.get<string>('AUTH_GRPC_ADDRESS');
+  }
+
   getMeetingGrpcUrl(): string {
     return this.configService.get<string>('MEETING_GRPC_ADDRESS');
   }

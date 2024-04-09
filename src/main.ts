@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger as NestLogger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { RedisIoAdapter } from './config/redis.adapter';
-import { EnvironmentConfigService } from './config/environments';
-import { WsExceptionFilter } from './config/exceptions/ws_exception';
-import { RpcExceptionFitler } from './config/exceptions/rpc_exception';
+import { RedisIoAdapter } from './infrastructure/config/socket/redis.adapter';
+import { EnvironmentConfigService } from './infrastructure/config/environment/environments';
+import { WsExceptionFilter } from './domain/models/exceptions/ws_exception';
+import { RpcExceptionFitler } from './domain/models/exceptions/rpc_exception';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { EPackage, getIncludeDirs, getProtoPath } from 'waterbus-proto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +20,24 @@ async function bootstrap() {
   await redisIoAdapter.connectToRedis(config.getRedisUrl());
   app.useWebSocketAdapter(redisIoAdapter);
   app.enableShutdownHooks(['SIGTERM']);
+
+  const configService = app.get(EnvironmentConfigService);
+  const realtimeGrpcUrl = configService.getRealtimeGrpcUrl();
+
+  const realtimeMicroserviceOptions: MicroserviceOptions = {
+    transport: Transport.GRPC,
+    options: {
+      package: EPackage.CHAT,
+      protoPath: getProtoPath(EPackage.CHAT),
+      url: realtimeGrpcUrl,
+      loader: {
+        includeDirs: [getIncludeDirs()],
+      },
+    },
+  };
+
+  app.connectMicroservice(realtimeMicroserviceOptions);
+
   await app.startAllMicroservices();
   await app.listen(config.getPort());
   return app.getUrl();

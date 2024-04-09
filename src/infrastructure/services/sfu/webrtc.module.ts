@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { WebRTCManager } from './webrtc_manager';
-import { EnvironmentConfigModule } from 'src/config/environment.module';
+import { EnvironmentConfigModule } from 'src/infrastructure/config/environment/environment.module';
 
 @Module({
   imports: [EnvironmentConfigModule],

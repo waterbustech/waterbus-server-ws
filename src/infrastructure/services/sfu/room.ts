@@ -15,11 +15,11 @@ import {
   debugConfig,
   kOpusCodec,
   offerType,
-} from '../../constants/webrtc_config';
+} from '../../../domain/constants/webrtc_config';
 import Participant from './domain/entities/participant';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EnvironmentConfigService } from 'src/config/environments';
+import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 
 export class Room {
   private participants: Record<string, Participant> = {};

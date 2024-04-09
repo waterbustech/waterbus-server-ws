@@ -14,7 +14,7 @@ import {
   timeout,
 } from 'rxjs';
 import { ClientGrpc } from '@nestjs/microservices';
-import { ClientService } from 'src/models/client-service';
+import { ClientService } from 'src/domain/models/client-service';
 import { meeting } from 'waterbus-proto';
 import { Status } from '@grpc/grpc-js/build/src/constants';
 

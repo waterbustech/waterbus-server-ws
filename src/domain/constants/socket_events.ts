@@ -1,4 +1,5 @@
 const SocketEvent = {
+  // Meeting
   publishCSS: 'BROADCAST_CSS',
   publishSSC: 'BROADCAST_SSC',
   subscribeCSS: 'REQUEST_ESTABLISH_SUBSCRIBER_CSS',
@@ -21,6 +22,13 @@ const SocketEvent = {
   setAudioEnabledSSC: 'SET_AUDIO_ENABLED_SSC',
   setScreenSharingSSC: 'SET_SCREEN_SHARING_SSC',
   setScreenSharingCSS: 'SET_SCREEN_SHARING_CSS',
+
+  // Chats
+  sendMessageSSC: 'SEND_MESSAGE_SSC',
+  updateMessageSSC: 'UPDATE_MESSAGE_SSC',
+  deleteMessageSSC: 'DELETE_MESSAGE_SSC',
+
+  // Default
   connection: 'connection',
   disconnect: 'disconnect',
 } as const;

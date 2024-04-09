@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SocketGateway } from './socket/socket.gateway';
 import { MeetingGateway } from './meeting/meeting.gateway';
-import { MeetingGrpcService } from 'src/services/meeting/meeting.service';
+import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';
 import { ClientGrpc } from '@nestjs/microservices';
-import { ClientProxyModule } from 'src/client-proxy/client-proxy.module';
-import { WebRTCModule } from 'src/services/sfu/webrtc.module';
+import { ClientProxyModule } from 'src/infrastructure/client-proxy/client-proxy.module';
+import { WebRTCModule } from 'src/infrastructure/services/sfu/webrtc.module';
 
 @Module({
   imports: [ClientProxyModule.register(), WebRTCModule],
@@ -18,5 +18,6 @@ import { WebRTCModule } from 'src/services/sfu/webrtc.module';
     SocketGateway,
     MeetingGateway,
   ],
+  exports: [SocketGateway],
 })
 export class GatewayModule {}

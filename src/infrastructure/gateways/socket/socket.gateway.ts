@@ -1,4 +1,4 @@
-import ISocketClient from '../../models/user.interface';
+import ISocketClient from '../../../domain/models/user.interface';
 import { Logger, OnModuleDestroy, ShutdownSignal } from '@nestjs/common';
 import {
   OnGatewayConnection,
@@ -8,9 +8,9 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import SocketEvent from 'src/constants/socket_events';
-import { MeetingGrpcService } from 'src/services/meeting/meeting.service';
-import { WebRTCManager } from 'src/services/sfu/webrtc_manager';
+import SocketEvent from 'src/domain/constants/socket_events';
+import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';
+import { WebRTCManager } from 'src/infrastructure/services/sfu/webrtc_manager';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -73,5 +73,18 @@ export class SocketGateway
         this.logger.log(error?.message, error?.stack);
       }
     }
+  }
+
+  // Utils: Use for other service want to emit client in realtime
+  async emitTo({
+    data,
+    event,
+    room,
+  }: {
+    data: any;
+    event: string;
+    room: string;
+  }) {
+    this.server.to(room).emit(event, data);
   }
 }

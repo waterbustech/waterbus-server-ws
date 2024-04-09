@@ -1,22 +1,22 @@
-import { v4 } from "uuid";
+import { v4 } from 'uuid';
 import {
   Kind,
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
-} from "werift";
-import { Track } from "./track";
-import logger from "../../../../helpers/logger";
+} from 'werift';
+import { Track } from './track';
+import logger from '../../../../helpers/logger';
 import {
   kAV1Codec,
   kH264Codec,
   kVP8Codec,
   kVP9Codec,
   kH265Codec,
-} from "../../../../constants/webrtc_config";
+} from '../../../../../domain/constants/webrtc_config';
 
 export class Media {
-  readonly mediaId = "m_" + v4();
+  readonly mediaId = 'm_' + v4();
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
   videoEnabled: boolean = true;
@@ -30,7 +30,7 @@ export class Media {
     readonly publisherId: string,
     readonly isVideoEnabled: boolean,
     readonly isAudioEnabled: boolean,
-    readonly e2eeEnabled: boolean
+    readonly e2eeEnabled: boolean,
   ) {
     this.videoEnabled = isVideoEnabled;
     this.audioEnabled = isAudioEnabled;
@@ -46,7 +46,7 @@ export class Media {
     const track = new Track(rtpTrack, this.transceiver!);
     this.tracks.push(track);
 
-    if (track.track.kind == "video") {
+    if (track.track.kind == 'video') {
       this.codec = track.track.codec.mimeType;
     }
   }
@@ -99,4 +99,4 @@ export type MediaInfo = {
   publisherId: string;
 };
 
-export type MediaInfoKind = Kind | "mixer";
+export type MediaInfoKind = Kind | 'mixer';

@@ -1,10 +1,10 @@
 {
   "name": "waterbus-sfu-ws",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "0.0.2",
+  "description": "Waterbus SFU Websocket",
+  "author": "lambiengcode",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -39,7 +39,7 @@
     "socket.io": "^4.7.5",
     "socket.io-adapter": "^2.5.4",
     "socket.io-redis": "^6.1.1",
-    "waterbus-proto": "^1.0.3",
+    "waterbus-proto": "^1.0.7",
     "werift": "^0.19.1",
     "winston": "^3.13.0"
   },

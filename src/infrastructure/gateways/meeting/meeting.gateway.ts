@@ -4,8 +4,8 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import SocketEvent from 'src/constants/socket_events';
-import ISocketClient from 'src/models/user.interface';
+import SocketEvent from 'src/domain/constants/socket_events';
+import ISocketClient from 'src/domain/models/user.interface';
 import { Logger } from '@nestjs/common';
 import { JoinRoomDto } from './dtos/join_room.dto';
 import { SendCandidateDto } from './dtos/send_candidate.dto';
@@ -13,10 +13,10 @@ import { SetScreenSharingDto } from './dtos/set_screen_sharing.dto';
 import { SetHardwareStatusDto } from './dtos/set_hardware_status.dto';
 import { SubscribeDto } from './dtos/subscribe.dto';
 import { AnswerSubscribeDto } from './dtos/answer_subscribe.dto';
-import { handleError } from 'src/helpers/error_handler';
+import { handleError } from 'src/infrastructure/helpers/error_handler';
 import * as webrtc from 'werift';
 import { SentCameraTypeDto } from './dtos/set_camera_type.dto';
-import { WebRTCManager } from 'src/services/sfu/webrtc_manager';
+import { WebRTCManager } from 'src/infrastructure/services/sfu/webrtc_manager';
 
 @WebSocketGateway()
 export class MeetingGateway {

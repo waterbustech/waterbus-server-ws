@@ -8,7 +8,7 @@ import { WsException } from '@nestjs/websockets';
 import {
   IExceptions,
   IFormatExceptionMessage,
-} from 'src/config/exceptions/exception';
+} from 'src/domain/models/exceptions/exception';
 
 @Injectable()
 export class ExceptionsService implements IExceptions {

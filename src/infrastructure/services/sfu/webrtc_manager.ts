@@ -1,10 +1,10 @@
 import * as webrtc from 'werift';
 import logger from '../../helpers/logger';
-import SocketEvent from '../../constants/socket_events';
+import SocketEvent from '../../../domain/constants/socket_events';
 import { Room } from './room';
 import { Injectable } from '@nestjs/common';
-import ISocketClient from 'src/models/user.interface';
-import { EnvironmentConfigService } from 'src/config/environments';
+import ISocketClient from 'src/domain/models/user.interface';
+import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 
 @Injectable()
 export class WebRTCManager {
