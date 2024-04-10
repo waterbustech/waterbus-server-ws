@@ -17,10 +17,14 @@ import { handleError } from 'src/infrastructure/helpers/error_handler';
 import * as webrtc from 'werift';
 import { SentCameraTypeDto } from './dtos/set_camera_type.dto';
 import { WebRTCManager } from 'src/infrastructure/services/sfu/webrtc_manager';
+import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';
 
 @WebSocketGateway()
 export class MeetingGateway {
-  constructor(private readonly rtcManager: WebRTCManager) {}
+  constructor(
+    private readonly rtcManager: WebRTCManager,
+    private readonly meetingService: MeetingGrpcService,
+  ) {}
 
   @WebSocketServer() private server: Server;
   private logger: Logger = new Logger('MeetingGateway');
@@ -33,6 +37,12 @@ export class MeetingGateway {
         info: { participantId: payload.participantId, roomId: payload.roomId },
       });
 
+      const participantInfo = await this.meetingService.getParticipantById({
+        participantId: payload.participantId,
+      });
+
+      if (!participantInfo) return;
+
       const responsePayload = await this.rtcManager.joinRoom(
         client.id,
         payload.sdp,
@@ -43,9 +53,7 @@ export class MeetingGateway {
           callback: () => {
             client.broadcast
               .to(payload.roomId)
-              .emit(SocketEvent.newParticipantSSC, {
-                targetId: payload.participantId,
-              });
+              .emit(SocketEvent.newParticipantSSC, participantInfo);
           },
         },
       );
@@ -113,8 +121,14 @@ export class MeetingGateway {
 
   @SubscribeMessage(SocketEvent.setE2eeEnabledCSS)
   handleSetE2eeEnable(client: ISocketClient, payload: SetHardwareStatusDto) {
-    const roomId = client.data.roomId;
-    const targetId = client.data.participantId;
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
 
     if (!roomId) return;
 
@@ -130,8 +144,14 @@ export class MeetingGateway {
 
   @SubscribeMessage(SocketEvent.setCameraTypeCSS)
   handleSetCameraType(client: ISocketClient, payload: SentCameraTypeDto) {
-    const roomId = client.data.roomId;
-    const targetId = client.data.participantId;
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
 
     if (!roomId) return;
 
@@ -150,8 +170,14 @@ export class MeetingGateway {
     client: ISocketClient,
     payload: SetHardwareStatusDto,
   ): any {
-    const roomId = client.data.roomId;
-    const targetId = client.data.participantId;
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
 
     if (!roomId) return;
 
@@ -170,8 +196,14 @@ export class MeetingGateway {
     client: ISocketClient,
     payload: SetHardwareStatusDto,
   ): any {
-    const roomId = client.data.roomId;
-    const targetId = client.data.participantId;
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
 
     if (!roomId) return;
 
@@ -190,8 +222,14 @@ export class MeetingGateway {
     client: ISocketClient,
     payload: SetScreenSharingDto,
   ): any {
-    const roomId = client.data.roomId;
-    const targetId = client.data.participantId;
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
 
     if (!roomId) return;
 
@@ -206,7 +244,7 @@ export class MeetingGateway {
   }
 
   @SubscribeMessage(SocketEvent.leaveRoomCSS)
-  handleLeaveRoom(client: ISocketClient, payload: any): any {
+  async handleLeaveRoom(client: ISocketClient, payload: any) {
     const info = this.rtcManager.leaveRoom({ clientId: client.id });
 
     if (info) {
@@ -215,6 +253,9 @@ export class MeetingGateway {
       });
 
       client.leave(info.roomId);
+
+      const succeed = await this.meetingService.leaveRoom(info);
+      this.logger.debug(`Update leave room in grpc: ${succeed}`);
     }
   }
 }

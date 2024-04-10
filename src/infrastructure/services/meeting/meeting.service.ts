@@ -78,6 +78,45 @@ export class MeetingGrpcService implements OnModuleInit {
       });
   }
 
+  async getParticipantById(
+    data: meeting.GetParticipantRequest,
+  ): Promise<meeting.GetParticipantResponse> {
+    const dataSubject = new Subject<meeting.GetParticipantResponse>();
+    this.$connectionSubject
+      .pipe(
+        switchMap((isConnected) => {
+          if (isConnected) {
+            return this.meetingService
+              .getParticipantById(data)
+              .pipe(timeout(5000));
+          } else
+            return throwError(() => ({
+              code: Status.UNAVAILABLE,
+              message: 'The service is currently unavailable',
+            }));
+        }),
+        catchError((error) => {
+          if (
+            (error?.code === Status.UNAVAILABLE ||
+              error?.name === 'TimeoutError') &&
+            this.isConnected
+          )
+            this.$connectionSubject.next(false);
+          return throwError(() => error);
+        }),
+        tap((data) => dataSubject.next(data)),
+        tap(() => dataSubject.complete()),
+      )
+      .subscribe({
+        error: (err) => dataSubject.error(err),
+      });
+    try {
+      return await lastValueFrom(dataSubject.pipe(map((response) => response)));
+    } catch (error) {
+      this.logger.error(error.toString());
+    }
+  }
+
   async leaveRoom(data: meeting.LeaveRoomRequest): Promise<boolean> {
     const dataSubject = new Subject<meeting.LeaveRoomResponse>();
     this.$connectionSubject

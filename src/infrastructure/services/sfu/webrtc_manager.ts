@@ -291,4 +291,8 @@ export class WebRTCManager {
   removeClient({ clientId }: { clientId: string }) {
     delete this.clients[clientId];
   }
+
+  getClientBySocketId({ clientId }): IClient | null {
+    return this.clients[clientId];
+  }
 }
