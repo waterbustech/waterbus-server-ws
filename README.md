@@ -78,9 +78,9 @@ When deploying SFU servers, it is recommended to place them as close as possible
 
 Before getting started, ensure you have the following software installed:
 
-- `Node.js`
-- `NestJS CLI`
-- `Redis`
+- `Node.js`: (>= 18)
+- `NestJS CLI` (>= 9.1.7)
+- `Redis`: (>= 7.0.12)
 
 - Clone repository
 

@@ -14,6 +14,9 @@ export const getGrpcClientOptions = (
 ): GrpcOptions => {
   let url = '';
   switch (_package) {
+    case EPackage.AUTH:
+      url = config.getAuthGrpcUrl();
+      break;
     case EPackage.MEETING:
       url = config.getMeetingGrpcUrl();
       break;
@@ -35,11 +38,21 @@ export const getGrpcClientOptions = (
   imports: [EnvironmentConfigModule],
 })
 export class ClientProxyModule {
+  static authClientProxy = 'authClientProxy';
   static meetingClientProxy = 'meetingClientProxy';
+
   static register(): DynamicModule {
     return {
       module: ClientProxyModule,
       providers: [
+        {
+          provide: ClientProxyModule.authClientProxy,
+          inject: [EnvironmentConfigService],
+          useFactory: (config: EnvironmentConfigService) =>
+            ClientProxyFactory.create(
+              getGrpcClientOptions(config, EPackage.AUTH),
+            ),
+        },
         {
           provide: ClientProxyModule.meetingClientProxy,
           inject: [EnvironmentConfigService],
@@ -49,7 +62,10 @@ export class ClientProxyModule {
             ),
         },
       ],
-      exports: [ClientProxyModule.meetingClientProxy],
+      exports: [
+        ClientProxyModule.authClientProxy,
+        ClientProxyModule.meetingClientProxy,
+      ],
     };
   }
 }

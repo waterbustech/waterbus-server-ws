@@ -6,14 +6,18 @@ import { MessageMappingProperties } from '@nestjs/websockets';
 import { Observable } from 'rxjs';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { INestApplicationContext, Logger } from '@nestjs/common';
+import { AuthGrpcService } from 'src/infrastructure/services/auth/auth.service';
 
 export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
+  private readonly authService: AuthGrpcService;
   private readonly logger: Logger;
   constructor(private app: INestApplicationContext) {
     super(app);
+    this.authService = this.app.get(AuthGrpcService);
     this.logger = new Logger(RedisIoAdapter.name);
   }
+
   async connectToRedis(redisUrl: string): Promise<void> {
     const pubClient = createClient({ url: redisUrl });
     const subClient = pubClient.duplicate();
@@ -31,7 +35,27 @@ export class RedisIoAdapter extends IoAdapter {
     };
     options.allowEIO3 = true;
     options.allowRequest = async (request, allowFunction) => {
-      return allowFunction(null, true);
+      const accessToken: any = request.headers?.authorization?.split(' ')[1];
+      try {
+        if (accessToken) {
+          const verifyResponse = await this.authService.verifyToken({
+            token: accessToken,
+          });
+
+          if (verifyResponse.valid) {
+            request['userId'] = verifyResponse.userId;
+            return allowFunction(null, true);
+          }
+        }
+
+        return allowFunction('Unauthorized', false);
+      } catch (error) {
+        this.logger.error(error?.message, error?.stack);
+        return allowFunction(
+          error?.message || 'The service is currently unavailable',
+          false,
+        );
+      }
     };
     const server = super.createIOServer(port, options);
     server.adapter(this.adapterConstructor);

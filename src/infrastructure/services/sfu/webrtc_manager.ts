@@ -5,6 +5,7 @@ import { Room } from './room';
 import { Injectable } from '@nestjs/common';
 import ISocketClient from 'src/domain/models/user.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class WebRTCManager {
@@ -65,7 +66,7 @@ export class WebRTCManager {
   }: {
     clientId: string;
     targetId: string;
-    socketClient: ISocketClient;
+    socketClient: ISocketClient | Server;
   }) {
     try {
       const clientInfo = this.clients[clientId];
@@ -83,10 +84,19 @@ export class WebRTCManager {
 
       const offer = await room.subscribe(targetId, participantId, {
         gotIceCandidate: (candidate) => {
-          socketClient.emit(SocketEvent.subscriberCandidateSSC, {
-            targetId: targetId,
-            candidate: candidate.toJSON(),
-          });
+          if (socketClient instanceof Server) {
+            // socketClient is of type Server
+            socketClient.to(clientId).emit(SocketEvent.subscriberCandidateSSC, {
+              targetId: targetId,
+              candidate: candidate.toJSON(),
+            });
+          } else {
+            // socketClient is of type ISocketClient
+            socketClient.emit(SocketEvent.subscriberCandidateSSC, {
+              targetId: targetId,
+              candidate: candidate.toJSON(),
+            });
+          }
         },
       });
 
@@ -285,6 +295,8 @@ export class WebRTCManager {
 
   // Manage Clients
   addClient({ clientId, info }: { clientId: string; info: IClient }) {
+    if (this.clients[clientId]) return;
+
     this.clients[clientId] = info;
   }
 

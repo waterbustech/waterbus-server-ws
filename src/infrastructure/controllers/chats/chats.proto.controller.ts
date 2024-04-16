@@ -24,7 +24,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
 
       const response: chat.MessageResponse = {
-        isSucceed: true,
+        succeed: true,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {
@@ -33,7 +33,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
     } catch (error) {
       const response: chat.MessageResponse = {
-        isSucceed: false,
+        succeed: false,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {
@@ -53,7 +53,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
 
       const response: chat.MessageResponse = {
-        isSucceed: true,
+        succeed: true,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {
@@ -62,7 +62,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
     } catch (error) {
       const response: chat.MessageResponse = {
-        isSucceed: false,
+        succeed: false,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {
@@ -82,7 +82,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
 
       const response: chat.MessageResponse = {
-        isSucceed: true,
+        succeed: true,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {
@@ -91,7 +91,7 @@ export class ChatGrpcController implements chat.ChatService {
       });
     } catch (error) {
       const response: chat.MessageResponse = {
-        isSucceed: false,
+        succeed: false,
       };
 
       return new Observable<chat.MessageResponse>((observer) => {

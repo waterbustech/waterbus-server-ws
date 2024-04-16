@@ -49,7 +49,13 @@ export class EnvironmentConfigService {
     ];
   }
 
+  isUsePm2(): boolean {
+    return this.configService.get<boolean>('IS_USE_PM2') || false;
+  }
+
   getPodName(): string {
-    return this.configService.get<string>('HOSTNAME');
+    return this.configService.get<string>(
+      this.isUsePm2() ? 'pm_id' : 'HOSTNAME',
+    );
   }
 }

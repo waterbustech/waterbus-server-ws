@@ -18,13 +18,22 @@ import * as webrtc from 'werift';
 import { SentCameraTypeDto } from './dtos/set_camera_type.dto';
 import { WebRTCManager } from 'src/infrastructure/services/sfu/webrtc_manager';
 import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';
+import RedisEvents from 'src/domain/constants/redis_events';
+import { MessageBroker } from 'src/infrastructure/services/message-broker/message-broker';
+import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 
 @WebSocketGateway()
 export class MeetingGateway {
+  private podName: string;
+
   constructor(
     private readonly rtcManager: WebRTCManager,
     private readonly meetingService: MeetingGrpcService,
-  ) {}
+    private readonly messageBroker: MessageBroker,
+    private readonly environment: EnvironmentConfigService,
+  ) {
+    this.podName = this.environment.getPodName();
+  }
 
   @WebSocketServer() private server: Server;
   private logger: Logger = new Logger('MeetingGateway');
@@ -34,11 +43,16 @@ export class MeetingGateway {
     try {
       this.rtcManager.addClient({
         clientId: client.id,
-        info: { participantId: payload.participantId, roomId: payload.roomId },
+        info: {
+          participantId: payload.participantId,
+          roomId: payload.roomId,
+          isPublish: true,
+        },
       });
 
       const participantInfo = await this.meetingService.getParticipantById({
         participantId: payload.participantId,
+        socketId: client.id,
       });
 
       if (!participantInfo) return;
@@ -69,16 +83,42 @@ export class MeetingGateway {
   @SubscribeMessage(SocketEvent.subscribeCSS)
   async handleSubscribe(client: ISocketClient, payload: SubscribeDto) {
     try {
-      const responsePayload = await this.rtcManager.subscribe({
-        clientId: client.id,
-        targetId: payload.targetId,
-        socketClient: client,
+      const participantInfo = await this.meetingService.getParticipantById({
+        participantId: payload.targetId,
+        socketId: 'WSid',
       });
 
-      this.server.to(client.id).emit(SocketEvent.answerSubscriberSSC, {
-        targetId: payload.targetId,
-        ...responsePayload,
-      });
+      if (!participantInfo) return;
+
+      if (participantInfo.ccu.podName == this.podName) {
+        const responsePayload = await this.rtcManager.subscribe({
+          clientId: client.id,
+          targetId: payload.targetId,
+          socketClient: client,
+        });
+
+        this.server.to(client.id).emit(SocketEvent.answerSubscriberSSC, {
+          targetId: payload.targetId,
+          ...responsePayload,
+        });
+      } else {
+        const clientInfo = this.rtcManager.getClientBySocketId({
+          clientId: client.id,
+        });
+
+        if (!clientInfo) return;
+
+        this.messageBroker.publishRedisChannel(
+          participantInfo.ccu.podName,
+          RedisEvents.SUBSCRIBE,
+          {
+            participantId: clientInfo.participantId,
+            roomId: clientInfo.roomId,
+            targetId: payload.targetId,
+            clientId: client.id,
+          },
+        );
+      }
     } catch (error) {
       handleError(SocketEvent.subscribeCSS, error.toString());
     }
@@ -89,11 +129,30 @@ export class MeetingGateway {
     client: ISocketClient,
     payload: AnswerSubscribeDto,
   ) {
-    await this.rtcManager.setDescriptionSubscriber({
-      clientId: client.id,
-      targetId: payload.targetId,
-      sdp: payload.sdp,
+    const participantInfo = await this.meetingService.getParticipantById({
+      participantId: payload.targetId,
+      socketId: 'WSid',
     });
+
+    if (!participantInfo) return;
+
+    if (participantInfo.ccu.podName == this.podName) {
+      await this.rtcManager.setDescriptionSubscriber({
+        clientId: client.id,
+        targetId: payload.targetId,
+        sdp: payload.sdp,
+      });
+    } else {
+      this.messageBroker.publishRedisChannel(
+        participantInfo.ccu.podName,
+        RedisEvents.ADD_DESCRIPTION,
+        {
+          clientId: client.id,
+          targetId: payload.targetId,
+          sdp: payload.sdp,
+        },
+      );
+    }
   }
 
   @SubscribeMessage(SocketEvent.publisherCandidateCSS)
@@ -112,11 +171,30 @@ export class MeetingGateway {
     client: ISocketClient,
     payload: SendCandidateDto,
   ) {
-    await this.rtcManager.addSubscriberIceCandidate({
-      clientId: client.id,
-      targetId: payload.targetId,
-      candidate: payload.candidate,
+    const participantInfo = await this.meetingService.getParticipantById({
+      participantId: payload.targetId,
+      socketId: 'WSid',
     });
+
+    if (!participantInfo) return;
+
+    if (participantInfo.ccu.podName == this.podName) {
+      await this.rtcManager.addSubscriberIceCandidate({
+        clientId: client.id,
+        targetId: payload.targetId,
+        candidate: payload.candidate,
+      });
+    } else {
+      this.messageBroker.publishRedisChannel(
+        participantInfo.ccu.podName,
+        RedisEvents.ADD_CANDIDATE,
+        {
+          clientId: client.id,
+          targetId: payload.targetId,
+          candidate: payload.candidate,
+        },
+      );
+    }
   }
 
   @SubscribeMessage(SocketEvent.setE2eeEnabledCSS)

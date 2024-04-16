@@ -9,6 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import SocketEvent from 'src/domain/constants/socket_events';
+import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
+import { AuthGrpcService } from 'src/infrastructure/services/auth/auth.service';
 import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';
 import { WebRTCManager } from 'src/infrastructure/services/sfu/webrtc_manager';
 
@@ -22,7 +24,9 @@ export class SocketGateway
 {
   constructor(
     private readonly rtcManager: WebRTCManager,
+    private readonly authService: AuthGrpcService,
     private readonly meetingService: MeetingGrpcService,
+    private readonly environment: EnvironmentConfigService,
   ) {}
 
   @WebSocketServer() public server: Server;
@@ -37,6 +41,14 @@ export class SocketGateway
   async handleConnection(client: ISocketClient) {
     try {
       this.logger.debug(`Client connected: ${client.id}`);
+
+      const userId = client.request['userId'];
+
+      this.authService.createCCU({
+        socketId: client.id,
+        podName: this.environment.getPodName(),
+        userId,
+      });
     } catch (error) {
       this.logger.error(error?.message, error?.stack);
       return client.disconnect(true);
@@ -45,6 +57,10 @@ export class SocketGateway
 
   async handleDisconnect(client: ISocketClient) {
     try {
+      this.authService.removeCCU({
+        socketId: client.id,
+      });
+
       const info = this.rtcManager.leaveRoom({ clientId: client.id });
 
       if (info) {
@@ -69,6 +85,11 @@ export class SocketGateway
     if (signal === ShutdownSignal.SIGTERM) {
       try {
         this.logger.debug(`Pod is shutting down...`);
+
+        // Delete CCU & participants in this pod
+        this.authService.shutDownPod({
+          podName: this.environment.getPodName(),
+        });
       } catch (error) {
         this.logger.log(error?.message, error?.stack);
       }
