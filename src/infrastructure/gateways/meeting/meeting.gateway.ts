@@ -36,7 +36,7 @@ export class MeetingGateway {
   }
 
   @WebSocketServer() private server: Server;
-  private logger: Logger = new Logger('MeetingGateway');
+  private logger: Logger = new Logger(MeetingGateway.name);
 
   @SubscribeMessage(SocketEvent.publishCSS)
   async handleJoinRoom(client: ISocketClient, payload: JoinRoomDto) {
@@ -102,18 +102,12 @@ export class MeetingGateway {
           ...responsePayload,
         });
       } else {
-        const clientInfo = this.rtcManager.getClientBySocketId({
-          clientId: client.id,
-        });
-
-        if (!clientInfo) return;
-
         this.messageBroker.publishRedisChannel(
           participantInfo.ccu.podName,
           RedisEvents.SUBSCRIBE,
           {
-            participantId: clientInfo.participantId,
-            roomId: clientInfo.roomId,
+            participantId: payload.participantId,
+            roomId: payload.roomId,
             targetId: payload.targetId,
             clientId: client.id,
           },

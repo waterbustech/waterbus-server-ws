@@ -27,7 +27,7 @@ export class MeetingGrpcService implements OnModuleInit {
   private $reconnect: Subscription;
 
   constructor(private readonly meetingClientProxy: ClientGrpc) {
-    this.logger = new Logger('MeetingService');
+    this.logger = new Logger(MeetingGrpcService.name);
   }
 
   onModuleInit() {

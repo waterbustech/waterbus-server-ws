@@ -22,6 +22,7 @@
     "pm2:start": "pm2 start ecosystem.config.js"
   },
   "dependencies": {
+    "@google-cloud/speech": "^6.5.0",
     "@grpc/grpc-js": "^1.10.5",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.2.1",

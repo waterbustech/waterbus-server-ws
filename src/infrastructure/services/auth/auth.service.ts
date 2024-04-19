@@ -27,7 +27,7 @@ export class AuthGrpcService implements OnModuleInit {
   private $reconnect: Subscription;
 
   constructor(private readonly authClientProxy: ClientGrpc) {
-    this.logger = new Logger('AuthService');
+    this.logger = new Logger(AuthGrpcService.name);
   }
 
   onModuleInit() {

@@ -48,7 +48,7 @@ export class Media {
   }
 
   addTrack(rtpTrack: MediaStreamTrack) {
-    const track = new Track(rtpTrack, this.transceiver!, );
+    const track = new Track(rtpTrack, this.transceiver!);
     this.tracks.push(track);
 
     if (track.track.kind == 'video') {
@@ -106,22 +106,14 @@ export class Media {
   startRecord() {
     if (this.tracks.length != 2) return;
 
-    const recFolderPath = join(dirname(__dirname), '..', 'rec');
-
-    this.recorder = new MediaRecorder(
-      join(recFolderPath, `${this.mediaId}.webm`),
-      2,
-      {
-        width: 640,
-        height: 480,
-      },
-    );
+    this.recorder = new MediaRecorder(`./rec/${this.mediaId}.webm`, 2, {
+      width: 640,
+      height: 480,
+    });
 
     this.tracks.forEach((track) => {
       this.recorder.addTrack(track.track);
     });
-
-    this.logger.debug('PATH:', join(recFolderPath, `${this.mediaId}.webm`));
   }
 }
 

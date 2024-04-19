@@ -31,7 +31,7 @@ export class SocketGateway
 
   @WebSocketServer() public server: Server;
 
-  private logger: Logger = new Logger('SocketGateway');
+  private logger: Logger = new Logger(SocketGateway.name);
 
   afterInit(server: Server) {
     this.server = server;
