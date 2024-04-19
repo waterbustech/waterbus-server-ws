@@ -300,9 +300,9 @@
     "@babel/helper-plugin-utils" "^7.24.0"
 
 "@babel/runtime@^7.21.0":
-  version "7.24.1"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.1.tgz#431f9a794d173b53720e69a6464abc6f0e2a5c57"
-  integrity sha512-+BIznRzyqBf+2wCTxcKE3wDjfGeCoVE61KSHGpkzqrLi8qxqFwBeUFyId2cxkTmm55fzDGnm0+yCxaxygrLUnQ==
+  version "7.24.4"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.4.tgz#de795accd698007a66ba44add6cc86542aff1edd"
+  integrity sha512-dkxf7+hn8mFBwKjs9bvBlArzLVxVbS8usaPUDd5p2a9JCL9tB8OaOVN1isD4+Xyk4ns89/xeOmbQvgdK7IIVdA==
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -726,6 +726,11 @@
   resolved "https://registry.yarnpkg.com/@js-sdsl/ordered-map/-/ordered-map-4.4.2.tgz#9299f82874bab9e4c7f9c48d865becbfe8d6907c"
   integrity sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==
 
+"@leichtgewicht/ip-codec@^2.0.1":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@leichtgewicht/ip-codec/-/ip-codec-2.0.5.tgz#4fc56c15c580b9adb7dc3c333a134e540b44bfb1"
+  integrity sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==
+
 "@ljharb/through@^2.3.11":
   version "2.3.13"
   resolved "https://registry.yarnpkg.com/@ljharb/through/-/through-2.3.13.tgz#b7e4766e0b65aa82e529be945ab078de79874edc"
@@ -1048,7 +1053,7 @@
   dependencies:
     tslib "^2.0.0"
 
-"@peculiar/webcrypto@^1.4.1":
+"@peculiar/webcrypto@^1.4.5":
   version "1.4.6"
   resolved "https://registry.yarnpkg.com/@peculiar/webcrypto/-/webcrypto-1.4.6.tgz#607af294c4f205efeeb172aa32cb20024fe4aecf"
   integrity sha512-YBcMfqNSwn3SujUJvAaySy5tlYbYm6tVt9SKoXu8BaTdKGROiJDgPR3TXpZdAKUfklzm3lRapJEAltiMQtBgZg==
@@ -1173,12 +1178,25 @@
   resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-1.0.5.tgz#a6d70ef7a0e71e083ea09b967df0a0ed742bc6ad"
   integrity sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==
 
+"@shinyoshiaki/binary-data@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@shinyoshiaki/binary-data/-/binary-data-0.6.1.tgz#98010e258d154ae83efeac14b9c0805dc8ffcea8"
+  integrity sha512-7HDb/fQAop2bCmvDIzU5+69i+UJaFgIVp99h1VzK1mpg1JwSODOkjbqD7ilTYnqlnadF8C4XjpwpepxDsGY6+w==
+  dependencies:
+    generate-function "^2.3.1"
+    is-plain-object "^2.0.3"
+
 "@shinyoshiaki/ebml-builder@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@shinyoshiaki/ebml-builder/-/ebml-builder-0.0.1.tgz#4dfe912b12911975a5ab77676f538c24c7caedf5"
   integrity sha512-rz1LklnlZ0yvVIt924yRGu+R87Fhfa06BdRIZR6GF6SXVSBTD9wCQmN6opXQLuSkoKXleWJwF3PW1ls8DGZjtw==
   dependencies:
     lodash.memoize "^4.1.2"
+
+"@shinyoshiaki/jspack@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@shinyoshiaki/jspack/-/jspack-0.0.6.tgz#fc0bf97cae5892e618d502f36f1234f0796bb42b"
+  integrity sha512-SdsNhLjQh4onBlyPrn4ia1Pdx5bXT88G/LIEpOYAjx2u4xeY/m/HB5yHqlkJB1uQR3Zw4R3hBWLj46STRAN0rg==
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
@@ -2280,6 +2298,14 @@ buffer@^5.5.0:
     base64-js "^1.3.1"
     ieee754 "^1.1.13"
 
+buffer@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/buffer/-/buffer-6.0.3.tgz#2ace578459cc8fbe2a70aaa8f52ee63b6a74c6c6"
+  integrity sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==
+  dependencies:
+    base64-js "^1.3.1"
+    ieee754 "^1.2.1"
+
 busboy@^1.0.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/busboy/-/busboy-1.6.0.tgz#966ea36a9502e43cdb9146962523b92f531f6893"
@@ -2795,6 +2821,13 @@ dir-glob@^3.0.1:
   integrity sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==
   dependencies:
     path-type "^4.0.0"
+
+dns-packet@^5.2.2:
+  version "5.6.1"
+  resolved "https://registry.yarnpkg.com/dns-packet/-/dns-packet-5.6.1.tgz#ae888ad425a9d1478a0674256ab866de1012cf2f"
+  integrity sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==
+  dependencies:
+    "@leichtgewicht/ip-codec" "^2.0.1"
 
 doctrine@^3.0.0:
   version "3.0.0"
@@ -3790,7 +3823,7 @@ interpret@^1.0.0:
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz#665ab8bc4da27a774a40584e812e3e0fa45b1a1e"
   integrity sha512-agE4QfB2Lkp9uICn7BAqoscw4SZP9kTE2hxiFI3jBPmXJfdqiahTbUuKGsMoN2GtqL9AxhYioAcVvgsb1HvRbA==
 
-ip@^1.1.8:
+ip@^1.1.9:
   version "1.1.9"
   resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.9.tgz#8dfbcc99a754d07f425310b86a99546b1151e396"
   integrity sha512-cyRxvOEpNHNtchU3Ln9KC/auJgup87llfQpQ+t5ghoC/UhL16SWzbueiCsdTnWmqAWl7LadfuwhlqmtOaqMHdQ==
@@ -4752,6 +4785,14 @@ multer@1.4.4-lts.1:
     object-assign "^4.1.1"
     type-is "^1.6.4"
     xtend "^4.0.0"
+
+multicast-dns@^7.2.5:
+  version "7.2.5"
+  resolved "https://registry.yarnpkg.com/multicast-dns/-/multicast-dns-7.2.5.tgz#77eb46057f4d7adbd16d9290fa7299f6fa64cced"
+  integrity sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==
+  dependencies:
+    dns-packet "^5.2.2"
+    thunky "^1.0.2"
 
 mute-stream@0.0.8:
   version "0.0.8"
@@ -5955,6 +5996,11 @@ through@^2.3.6:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
+thunky@^1.0.2:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/thunky/-/thunky-1.1.0.tgz#5abaf714a9405db0504732bbccd2cedd9ef9537d"
+  integrity sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==
+
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
@@ -6351,25 +6397,37 @@ webpack@5.90.1:
     watchpack "^2.4.0"
     webpack-sources "^3.2.3"
 
-werift@^0.19.1:
+werift-rtp@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/werift-rtp/-/werift-rtp-0.8.1.tgz#dbd41df74587ba84410c5c7eafb65dd70bfbaad2"
+  integrity sha512-nK14FrXbkrrciYrQzK08o8ZUgev4BtlyO93EUX7COK49tY6nsGlyC4utCy+m/JysRiK4ANE/e33d8W2Yg6Ic3g==
+  dependencies:
+    "@minhducsun2002/leb128" "^1.0.0"
+    aes-js "^3.1.2"
+    binary-data "^0.6.0"
+    buffer "^6.0.3"
+    debug "^4.3.4"
+    jspack "^0.0.4"
+    mp4box "^0.5.2"
+    rx.mini "^1.2.2"
+
+"werift@file:../../werift-webrtc/packages/webrtc":
   version "0.19.1"
-  resolved "https://registry.yarnpkg.com/werift/-/werift-0.19.1.tgz#d4e2b65abf536cd94a0a1b17727d60c3fa758762"
-  integrity sha512-Ocusg9RwWU1fbX5a6jkh2bhVsDf0Hd8T5rgR/64OKU3njbyhDDcWt0NcCJs+o65V3K8aBi8d9gt44jL23ooOhA==
   dependencies:
     "@fidm/x509" "^1.2.1"
     "@minhducsun2002/leb128" "^1.0.0"
     "@noble/curves" "^1.3.0"
-    "@peculiar/webcrypto" "^1.4.1"
+    "@peculiar/webcrypto" "^1.4.5"
     "@peculiar/x509" "^1.9.2"
+    "@shinyoshiaki/binary-data" "^0.6.1"
     "@shinyoshiaki/ebml-builder" "^0.0.1"
+    "@shinyoshiaki/jspack" "^0.0.6"
     aes-js "^3.1.2"
-    binary-data "^0.6.0"
     buffer-crc32 "^1.0.0"
     date-fns "^2.29.3"
     debug "^4.3.4"
     int64-buffer "^1.0.1"
-    ip "^1.1.8"
-    jspack "^0.0.4"
+    ip "^1.1.9"
     lodash "^4.17.21"
     mp4box "^0.5.2"
     nano-time "^1.0.0"

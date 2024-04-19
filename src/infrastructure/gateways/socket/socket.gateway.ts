@@ -86,6 +86,8 @@ export class SocketGateway
       try {
         this.logger.debug(`Pod is shutting down...`);
 
+        this.server.emit(SocketEvent.destroy + this.environment.getPodName());
+
         // Delete CCU & participants in this pod
         this.authService.shutDownPod({
           podName: this.environment.getPodName(),

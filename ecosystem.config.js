@@ -14,6 +14,7 @@ module.exports = {
       error_file: 'logs/error.log',
       out_file: 'logs/out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
+      kill_timeout: 30000,
     },
     {
       name: 'waterbus.sfu.ws.02',
@@ -31,6 +32,7 @@ module.exports = {
       error_file: 'logs/error.log',
       out_file: 'logs/out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
+      kill_timeout: 30000,
     },
   ],
 };

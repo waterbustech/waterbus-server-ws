@@ -1,8 +1,7 @@
 import * as webrtc from 'werift';
-import logger from '../../helpers/logger';
 import SocketEvent from '../../../domain/constants/socket_events';
 import { Room } from './room';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import ISocketClient from 'src/domain/models/user.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { Server } from 'socket.io';
@@ -11,8 +10,11 @@ import { Server } from 'socket.io';
 export class WebRTCManager {
   private rooms: Record<string, Room> = {};
   private clients: Record<string, IClient> = {};
+  private logger: Logger;
 
-  constructor(private environment: EnvironmentConfigService) {}
+  constructor(private environment: EnvironmentConfigService) {
+    this.logger = new Logger(WebRTCManager.name);
+  }
 
   async joinRoom(
     clientId: string,
@@ -53,7 +55,7 @@ export class WebRTCManager {
         otherParticipants: otherParticipants,
       };
     } catch (error) {
-      logger.error(
+      this.logger.error(
         `Establish publisher failure with error: ${JSON.stringify(error)}`,
       );
     }
@@ -102,7 +104,7 @@ export class WebRTCManager {
 
       return offer;
     } catch (error) {
-      logger.error(
+      this.logger.error(
         `Establish subscriber failure with error: ${JSON.stringify(error)}`,
       );
     }

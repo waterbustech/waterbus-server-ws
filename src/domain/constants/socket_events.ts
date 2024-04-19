@@ -28,9 +28,10 @@ const SocketEvent = {
   updateMessageSSC: 'UPDATE_MESSAGE_SSC',
   deleteMessageSSC: 'DELETE_MESSAGE_SSC',
 
-  // Default
+  // System
   connection: 'connection',
   disconnect: 'disconnect',
+  destroy: 'distroy_',
 } as const;
 
 export default SocketEvent;

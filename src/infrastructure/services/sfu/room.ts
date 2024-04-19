@@ -5,10 +5,9 @@ import {
   RTCSessionDescription,
   RTCIceCandidate,
 } from 'werift';
-
 import { sleep } from './utils/helper';
-import { Media } from './domain/entities/media';
-import { PeerConnection } from './domain/entities/peer';
+import { Media } from './entities/media';
+import { PeerConnection } from './entities/peer';
 import {
   answerType,
   codecsSupported,
@@ -16,18 +15,18 @@ import {
   kOpusCodec,
   offerType,
 } from '../../../domain/constants/webrtc_config';
-import Participant from './domain/entities/participant';
+import Participant from './entities/participant';
 import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 
 export class Room {
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
+  private logger: Logger;
 
-  private logger: Logger = new Logger('Room');
-
-  constructor(private environment: EnvironmentConfigService) {}
+  constructor(private environment: EnvironmentConfigService) {
+    this.logger = new Logger(Room.name);
+  }
 
   async join(
     sdp: string,

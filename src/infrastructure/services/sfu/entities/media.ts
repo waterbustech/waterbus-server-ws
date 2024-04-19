@@ -4,16 +4,18 @@ import {
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
+  MediaRecorder,
 } from 'werift';
 import { Track } from './track';
-import logger from '../../../../helpers/logger';
 import {
   kAV1Codec,
   kH264Codec,
   kVP8Codec,
   kVP9Codec,
   kH265Codec,
-} from '../../../../../domain/constants/webrtc_config';
+} from '../../../../domain/constants/webrtc_config';
+import { dirname, join } from 'path';
+import { Logger } from '@nestjs/common';
 
 export class Media {
   readonly mediaId = 'm_' + v4();
@@ -25,6 +27,8 @@ export class Media {
   isScreenSharing: boolean = false;
   cameraType: number = 0; // 0: front | 1: rear
   codec: string;
+  private logger: Logger;
+  private recorder: MediaRecorder;
 
   constructor(
     readonly publisherId: string,
@@ -35,6 +39,7 @@ export class Media {
     this.videoEnabled = isVideoEnabled;
     this.audioEnabled = isAudioEnabled;
     this.isE2eeEnabled = e2eeEnabled;
+    this.logger = new Logger(Media.name);
   }
 
   initAV(transceiver: RTCRtpTransceiver) {
@@ -43,7 +48,7 @@ export class Media {
   }
 
   addTrack(rtpTrack: MediaStreamTrack) {
-    const track = new Track(rtpTrack, this.transceiver!);
+    const track = new Track(rtpTrack, this.transceiver!, );
     this.tracks.push(track);
 
     if (track.track.kind == 'video') {
@@ -52,6 +57,10 @@ export class Media {
   }
 
   stop() {
+    if (this.recorder != null) {
+      this.recorder.stop();
+    }
+
     this.tracks.forEach((track) => track.stop());
   }
 
@@ -92,6 +101,27 @@ export class Media {
 
   setE2eeEnabled(isEnable: boolean) {
     this.isE2eeEnabled = isEnable;
+  }
+
+  startRecord() {
+    if (this.tracks.length != 2) return;
+
+    const recFolderPath = join(dirname(__dirname), '..', 'rec');
+
+    this.recorder = new MediaRecorder(
+      join(recFolderPath, `${this.mediaId}.webm`),
+      2,
+      {
+        width: 640,
+        height: 480,
+      },
+    );
+
+    this.tracks.forEach((track) => {
+      this.recorder.addTrack(track.track);
+    });
+
+    this.logger.debug('PATH:', join(recFolderPath, `${this.mediaId}.webm`));
   }
 }
 
