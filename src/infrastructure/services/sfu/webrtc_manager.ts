@@ -1,18 +1,25 @@
 import * as webrtc from 'werift';
-import logger from '../../helpers/logger';
 import SocketEvent from '../../../domain/constants/socket_events';
 import { Room } from './room';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import ISocketClient from 'src/domain/models/user.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { Server } from 'socket.io';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 @Injectable()
 export class WebRTCManager {
   private rooms: Record<string, Room> = {};
   private clients: Record<string, IClient> = {};
+  private logger: Logger;
 
-  constructor(private environment: EnvironmentConfigService) {}
+  constructor(
+    private environment: EnvironmentConfigService,
+    @Inject(forwardRef(() => SocketGateway))
+    private socketGateway: SocketGateway,
+  ) {
+    this.logger = new Logger(WebRTCManager.name);
+  }
 
   async joinRoom(
     clientId: string,
@@ -32,7 +39,11 @@ export class WebRTCManager {
       const participantId = clientInfo.participantId;
 
       if (!this.rooms[roomId]) {
-        this.rooms[roomId] = new Room(this.environment);
+        this.rooms[roomId] = new Room(
+          this.environment,
+          this.socketGateway,
+          roomId,
+        );
       }
 
       const room = this.rooms[roomId];
@@ -53,7 +64,7 @@ export class WebRTCManager {
         otherParticipants: otherParticipants,
       };
     } catch (error) {
-      logger.error(
+      this.logger.error(
         `Establish publisher failure with error: ${JSON.stringify(error)}`,
       );
     }
@@ -102,7 +113,7 @@ export class WebRTCManager {
 
       return offer;
     } catch (error) {
-      logger.error(
+      this.logger.error(
         `Establish subscriber failure with error: ${JSON.stringify(error)}`,
       );
     }

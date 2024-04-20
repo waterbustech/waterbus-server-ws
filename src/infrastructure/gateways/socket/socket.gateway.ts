@@ -31,7 +31,7 @@ export class SocketGateway
 
   @WebSocketServer() public server: Server;
 
-  private logger: Logger = new Logger('SocketGateway');
+  private logger: Logger = new Logger(SocketGateway.name);
 
   afterInit(server: Server) {
     this.server = server;
@@ -40,8 +40,6 @@ export class SocketGateway
 
   async handleConnection(client: ISocketClient) {
     try {
-      this.logger.debug(`Client connected: ${client.id}`);
-
       const userId = client.request['userId'];
 
       this.authService.createCCU({
@@ -49,6 +47,8 @@ export class SocketGateway
         podName: this.environment.getPodName(),
         userId,
       });
+
+      client.join(SocketEvent.destroy + this.environment.getPodName());
     } catch (error) {
       this.logger.error(error?.message, error?.stack);
       return client.disconnect(true);
@@ -85,6 +85,8 @@ export class SocketGateway
     if (signal === ShutdownSignal.SIGTERM) {
       try {
         this.logger.debug(`Pod is shutting down...`);
+
+        this.server.emit(SocketEvent.destroy + this.environment.getPodName());
 
         // Delete CCU & participants in this pod
         this.authService.shutDownPod({

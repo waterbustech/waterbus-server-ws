@@ -42,7 +42,7 @@ export class RedisIoAdapter extends IoAdapter {
             token: accessToken,
           });
 
-          if (verifyResponse.valid) {
+          if (verifyResponse && verifyResponse.valid) {
             request['userId'] = verifyResponse.userId;
             return allowFunction(null, true);
           }

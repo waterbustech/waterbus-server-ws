@@ -21,6 +21,7 @@ import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.
 import RedisEvents from 'src/domain/constants/redis_events';
 import { MessageBroker } from 'src/infrastructure/services/message-broker/message-broker';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
+import { SetSubscribeSubtitleDto } from './dtos/set_subscribe_subtitle.dto';
 
 @WebSocketGateway()
 export class MeetingGateway {
@@ -36,7 +37,7 @@ export class MeetingGateway {
   }
 
   @WebSocketServer() private server: Server;
-  private logger: Logger = new Logger('MeetingGateway');
+  private logger: Logger = new Logger(MeetingGateway.name);
 
   @SubscribeMessage(SocketEvent.publishCSS)
   async handleJoinRoom(client: ISocketClient, payload: JoinRoomDto) {
@@ -102,18 +103,12 @@ export class MeetingGateway {
           ...responsePayload,
         });
       } else {
-        const clientInfo = this.rtcManager.getClientBySocketId({
-          clientId: client.id,
-        });
-
-        if (!clientInfo) return;
-
         this.messageBroker.publishRedisChannel(
           participantInfo.ccu.podName,
           RedisEvents.SUBSCRIBE,
           {
-            participantId: clientInfo.participantId,
-            roomId: clientInfo.roomId,
+            participantId: payload.participantId,
+            roomId: payload.roomId,
             targetId: payload.targetId,
             clientId: client.id,
           },
@@ -319,6 +314,48 @@ export class MeetingGateway {
       isSharing,
       participantId: targetId,
     });
+  }
+
+  @SubscribeMessage(SocketEvent.handRaisingCSS)
+  handleSetHandRaising(client: ISocketClient, payload: any): any {
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const targetId = clientInfo.participantId;
+
+    if (!roomId) return;
+
+    client.broadcast.to(roomId).emit(SocketEvent.handRaisingSSC, {
+      participantId: targetId,
+    });
+  }
+
+  @SubscribeMessage(SocketEvent.setSubscribeSubtitleCSS)
+  handleSetSubscribeSubtitle(
+    client: ISocketClient,
+    payload: SetSubscribeSubtitleDto,
+  ): any {
+    const clientInfo = this.rtcManager.getClientBySocketId({
+      clientId: client.id,
+    });
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+
+    if (!roomId) return;
+
+    const subtitleChannel = SocketEvent.subtitleSSC + roomId;
+
+    if (payload.enabled) {
+      client.join(subtitleChannel);
+    } else {
+      client.leave(subtitleChannel);
+    }
   }
 
   @SubscribeMessage(SocketEvent.leaveRoomCSS)

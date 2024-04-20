@@ -5,10 +5,9 @@ import {
   RTCSessionDescription,
   RTCIceCandidate,
 } from 'werift';
-
 import { sleep } from './utils/helper';
-import { Media } from './domain/entities/media';
-import { PeerConnection } from './domain/entities/peer';
+import { Media } from './entities/media';
+import { PeerConnection } from './entities/peer';
 import {
   answerType,
   codecsSupported,
@@ -16,18 +15,25 @@ import {
   kOpusCodec,
   offerType,
 } from '../../../domain/constants/webrtc_config';
-import Participant from './domain/entities/participant';
+import Participant from './entities/participant';
 import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 export class Room {
+  private roomId: string;
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
+  private logger: Logger;
 
-  private logger: Logger = new Logger('Room');
-
-  constructor(private environment: EnvironmentConfigService) {}
+  constructor(
+    private readonly environment: EnvironmentConfigService,
+    private readonly serverSocket: SocketGateway,
+    private readonly room: string,
+  ) {
+    this.logger = new Logger(Room.name);
+    this.roomId = room;
+  }
 
   async join(
     sdp: string,
@@ -86,7 +92,11 @@ export class Room {
           this.logger.log(`[NEW TRACK]: track info
           kind: ${track.kind}
           codec: ${track.codec.mimeType}`);
-          this.participants[participantId].media.addTrack(track);
+          this.participants[participantId].media.addTrack(
+            track,
+            this.serverSocket,
+            this.roomId,
+          );
         } else {
           sleep(100);
         }
