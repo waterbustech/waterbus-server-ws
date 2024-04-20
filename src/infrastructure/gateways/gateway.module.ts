@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { SocketGateway } from './socket/socket.gateway';
 import { MeetingGateway } from './meeting/meeting.gateway';
 import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';

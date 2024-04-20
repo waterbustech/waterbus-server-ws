@@ -14,11 +14,12 @@ import {
   kVP9Codec,
   kH265Codec,
 } from '../../../../domain/constants/webrtc_config';
-import { dirname, join } from 'path';
 import { Logger } from '@nestjs/common';
+import { Server } from 'socket.io';
 
 export class Media {
   readonly mediaId = 'm_' + v4();
+  private participantId: string;
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
   videoEnabled: boolean = true;
@@ -36,6 +37,7 @@ export class Media {
     readonly isAudioEnabled: boolean,
     readonly e2eeEnabled: boolean,
   ) {
+    this.participantId = publisherId;
     this.videoEnabled = isVideoEnabled;
     this.audioEnabled = isAudioEnabled;
     this.isE2eeEnabled = e2eeEnabled;
@@ -47,8 +49,14 @@ export class Media {
     return this;
   }
 
-  addTrack(rtpTrack: MediaStreamTrack) {
-    const track = new Track(rtpTrack, this.transceiver!);
+  addTrack(rtpTrack: MediaStreamTrack, server: Server, roomId: string) {
+    const track = new Track(
+      rtpTrack,
+      this.transceiver!,
+      server,
+      roomId,
+      this.participantId,
+    );
     this.tracks.push(track);
 
     if (track.track.kind == 'video') {
@@ -120,5 +128,3 @@ export class Media {
 export type MediaInfo = {
   publisherId: string;
 };
-
-export type MediaInfoKind = Kind | 'mixer';

@@ -1,19 +1,26 @@
 import * as webrtc from 'werift';
 import SocketEvent from '../../../domain/constants/socket_events';
 import { Room } from './room';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import ISocketClient from 'src/domain/models/user.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { Server } from 'socket.io';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 @Injectable()
 export class WebRTCManager {
   private rooms: Record<string, Room> = {};
   private clients: Record<string, IClient> = {};
+  private server: Server;
   private logger: Logger;
 
-  constructor(private environment: EnvironmentConfigService) {
+  constructor(
+    private environment: EnvironmentConfigService,
+    @Inject(forwardRef(() => SocketGateway))
+    private socketGateway: SocketGateway,
+  ) {
     this.logger = new Logger(WebRTCManager.name);
+    this.server = socketGateway.server;
   }
 
   async joinRoom(
@@ -34,7 +41,7 @@ export class WebRTCManager {
       const participantId = clientInfo.participantId;
 
       if (!this.rooms[roomId]) {
-        this.rooms[roomId] = new Room(this.environment);
+        this.rooms[roomId] = new Room(this.environment, this.server, roomId);
       }
 
       const room = this.rooms[roomId];

@@ -18,14 +18,23 @@ import {
 import Participant from './entities/participant';
 import { Logger } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
+import { Server } from 'socket.io';
 
 export class Room {
+  private roomId: string;
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
   private logger: Logger;
+  private server: Server;
 
-  constructor(private environment: EnvironmentConfigService) {
+  constructor(
+    private readonly environment: EnvironmentConfigService,
+    private readonly serverSocket: Server,
+    private readonly room: string,
+  ) {
     this.logger = new Logger(Room.name);
+    this.server = serverSocket;
+    this.roomId = room;
   }
 
   async join(
@@ -85,7 +94,11 @@ export class Room {
           this.logger.log(`[NEW TRACK]: track info
           kind: ${track.kind}
           codec: ${track.codec.mimeType}`);
-          this.participants[participantId].media.addTrack(track);
+          this.participants[participantId].media.addTrack(
+            track,
+            this.server,
+            this.roomId,
+          );
         } else {
           sleep(100);
         }

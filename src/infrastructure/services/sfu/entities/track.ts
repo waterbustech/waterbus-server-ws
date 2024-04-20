@@ -3,47 +3,29 @@ import { OpusEncoder } from '@discordjs/opus';
 import { RTCRtpTransceiver, MediaStreamTrack } from 'werift';
 import { SpeechClient } from '@google-cloud/speech';
 import fs from 'fs';
+import { Server } from 'socket.io';
+import SocketEvent from 'src/domain/constants/socket_events';
 
 export class Track {
-  rtcpId: any;
-  logger: Logger;
-  speechClient: SpeechClient;
-  recognizeStream: any;
-  audioDecoder: OpusEncoder;
+  private rtcpId: any;
+  private logger: Logger;
+  private speechClient: SpeechClient;
+  private recognizeStream: any;
+  private audioDecoder: OpusEncoder;
+  private server: Server;
 
   constructor(
     public track: MediaStreamTrack,
     public receiver: RTCRtpTransceiver,
+    private readonly serverSocket: Server,
+    private readonly roomId: string,
+    private readonly participantId: string,
   ) {
     this.logger = new Logger(Track.name);
 
-    const keyFilePath = './credentials.json';
-    const keyFileContent = fs.readFileSync(keyFilePath, 'utf-8');
-    const credentials = JSON.parse(keyFileContent);
-    this.audioDecoder = new OpusEncoder(48000, 2);
+    this.server = serverSocket;
 
-    this.speechClient = new SpeechClient({
-      credentials: credentials,
-    });
-
-    this.recognizeStream = this.speechClient
-      .streamingRecognize({
-        config: {
-          encoding: 'LINEAR16',
-          sampleRateHertz: 16000,
-          languageCode: 'en-US',
-        },
-        interimResults: true,
-      })
-      .on('data', (data) => {
-        if (data.results[0] && data.results[0].alternatives[0]) {
-          const transcription = data.results[0].alternatives[0].transcript;
-          this.logger.verbose('Transcription:', transcription);
-        }
-      })
-      .on('error', (error) => {
-        this.logger.error('Error transcribing audio:', error);
-      });
+    this.initialGoogleSTT(roomId, participantId);
 
     track.onReceiveRtp.subscribe((packet) => {
       if (track.kind == 'audio') {
@@ -60,20 +42,59 @@ export class Track {
     });
   }
 
+  private initialGoogleSTT(roomId: string, participantId: string) {
+    try {
+      const subtitleChannel = SocketEvent.subtitleSSC + roomId;
+      const keyFilePath = './credentials.json';
+      const keyFileContent = fs.readFileSync(keyFilePath, 'utf-8');
+
+      if (!keyFileContent) {
+        this.logger.warn('Missing credentials file to use Speech to Text');
+        return;
+      }
+
+      const credentials = JSON.parse(keyFileContent);
+
+      this.audioDecoder = new OpusEncoder(16000, 1);
+
+      this.speechClient = new SpeechClient({
+        credentials: credentials,
+      });
+
+      this.recognizeStream = this.speechClient
+        .streamingRecognize({
+          config: {
+            encoding: 'LINEAR16',
+            sampleRateHertz: 16000,
+            languageCode: 'en-US',
+            model: 'phone_call',
+          },
+          interimResults: true,
+        })
+        .on('data', (data) => {
+          if (data.results[0] && data.results[0].alternatives[0]) {
+            const transcription = data.results[0].alternatives[0].transcript;
+
+            this.server.to(subtitleChannel).emit(SocketEvent.subtitleSSC, {
+              participantId,
+              transcription,
+            });
+          }
+        })
+        .on('error', (error) => {
+          this.logger.error('Error transcribing audio:', error);
+        });
+    } catch (error) {}
+  }
+
   private async transcribeAudio(payload: Buffer) {
     try {
       const decoded = this.audioDecoder.decode(payload);
-      this.logger.verbose(decoded);
-      this.writeToFile(decoded);
-      // this.recognizeStream.write(decoded);
+
+      this.recognizeStream.write(decoded);
     } catch (error) {
       this.logger.error('Error transcribing audio:', error);
     }
-  }
-
-  private writeToFile(decoded: Uint8Array) {
-    const filePath = './audio.wav';
-    fs.appendFileSync(filePath, decoded);
   }
 
   private startPLI(ssrc: number) {
