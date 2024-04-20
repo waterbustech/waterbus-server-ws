@@ -18,22 +18,20 @@ import {
 import Participant from './entities/participant';
 import { Logger } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
-import { Server } from 'socket.io';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 export class Room {
   private roomId: string;
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
   private logger: Logger;
-  private server: Server;
 
   constructor(
     private readonly environment: EnvironmentConfigService,
-    private readonly serverSocket: Server,
+    private readonly serverSocket: SocketGateway,
     private readonly room: string,
   ) {
     this.logger = new Logger(Room.name);
-    this.server = serverSocket;
     this.roomId = room;
   }
 
@@ -96,7 +94,7 @@ export class Room {
           codec: ${track.codec.mimeType}`);
           this.participants[participantId].media.addTrack(
             track,
-            this.server,
+            this.serverSocket,
             this.roomId,
           );
         } else {

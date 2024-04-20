@@ -15,7 +15,7 @@ import {
   kH265Codec,
 } from '../../../../domain/constants/webrtc_config';
 import { Logger } from '@nestjs/common';
-import { Server } from 'socket.io';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 export class Media {
   readonly mediaId = 'm_' + v4();
@@ -49,7 +49,7 @@ export class Media {
     return this;
   }
 
-  addTrack(rtpTrack: MediaStreamTrack, server: Server, roomId: string) {
+  addTrack(rtpTrack: MediaStreamTrack, server: SocketGateway, roomId: string) {
     const track = new Track(
       rtpTrack,
       this.transceiver!,

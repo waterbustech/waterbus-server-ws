@@ -11,7 +11,6 @@ import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway
 export class WebRTCManager {
   private rooms: Record<string, Room> = {};
   private clients: Record<string, IClient> = {};
-  private server: Server;
   private logger: Logger;
 
   constructor(
@@ -20,7 +19,6 @@ export class WebRTCManager {
     private socketGateway: SocketGateway,
   ) {
     this.logger = new Logger(WebRTCManager.name);
-    this.server = socketGateway.server;
   }
 
   async joinRoom(
@@ -41,7 +39,11 @@ export class WebRTCManager {
       const participantId = clientInfo.participantId;
 
       if (!this.rooms[roomId]) {
-        this.rooms[roomId] = new Room(this.environment, this.server, roomId);
+        this.rooms[roomId] = new Room(
+          this.environment,
+          this.socketGateway,
+          roomId,
+        );
       }
 
       const room = this.rooms[roomId];

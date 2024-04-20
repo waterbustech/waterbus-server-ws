@@ -3,8 +3,8 @@ import { OpusEncoder } from '@discordjs/opus';
 import { RTCRtpTransceiver, MediaStreamTrack } from 'werift';
 import { SpeechClient } from '@google-cloud/speech';
 import fs from 'fs';
-import { Server } from 'socket.io';
 import SocketEvent from 'src/domain/constants/socket_events';
+import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 export class Track {
   private rtcpId: any;
@@ -12,18 +12,15 @@ export class Track {
   private speechClient: SpeechClient;
   private recognizeStream: any;
   private audioDecoder: OpusEncoder;
-  private server: Server;
 
   constructor(
     public track: MediaStreamTrack,
     public receiver: RTCRtpTransceiver,
-    private readonly serverSocket: Server,
+    private readonly serverSocket: SocketGateway,
     private readonly roomId: string,
     private readonly participantId: string,
   ) {
     this.logger = new Logger(Track.name);
-
-    this.server = serverSocket;
 
     this.initialGoogleSTT(roomId, participantId);
 
@@ -75,10 +72,12 @@ export class Track {
           if (data.results[0] && data.results[0].alternatives[0]) {
             const transcription = data.results[0].alternatives[0].transcript;
 
-            this.server.to(subtitleChannel).emit(SocketEvent.subtitleSSC, {
-              participantId,
-              transcription,
-            });
+            this.serverSocket.server
+              .to(subtitleChannel)
+              .emit(SocketEvent.subtitleSSC, {
+                participantId,
+                transcription,
+              });
           }
         })
         .on('error', (error) => {
@@ -89,9 +88,11 @@ export class Track {
 
   private async transcribeAudio(payload: Buffer) {
     try {
-      const decoded = this.audioDecoder.decode(payload);
+      if (this.recognizeStream != null) {
+        const decoded = this.audioDecoder.decode(payload);
 
-      this.recognizeStream.write(decoded);
+        this.recognizeStream.write(decoded);
+      }
     } catch (error) {
       this.logger.error('Error transcribing audio:', error);
     }
