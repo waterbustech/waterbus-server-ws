@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { OpusEncoder } from '@discordjs/opus';
 import { RTCRtpTransceiver, MediaStreamTrack } from 'werift';
 import { SpeechClient } from '@google-cloud/speech';
 import fs from 'fs';
@@ -8,6 +9,7 @@ export class Track {
   logger: Logger;
   speechClient: SpeechClient;
   recognizeStream: any;
+  audioDecoder: OpusEncoder;
 
   constructor(
     public track: MediaStreamTrack,
@@ -18,6 +20,7 @@ export class Track {
     const keyFilePath = './credentials.json';
     const keyFileContent = fs.readFileSync(keyFilePath, 'utf-8');
     const credentials = JSON.parse(keyFileContent);
+    this.audioDecoder = new OpusEncoder(48000, 2);
 
     this.speechClient = new SpeechClient({
       credentials: credentials,
@@ -35,16 +38,20 @@ export class Track {
       .on('data', (data) => {
         if (data.results[0] && data.results[0].alternatives[0]) {
           const transcription = data.results[0].alternatives[0].transcript;
-          this.logger.verbose('Partial Transcription:', transcription);
+          this.logger.verbose('Transcription:', transcription);
         }
       })
       .on('error', (error) => {
         this.logger.error('Error transcribing audio:', error);
       });
 
-    track.onReceiveRtp.subscribe((rtp) => {
+    track.onReceiveRtp.subscribe((packet) => {
       if (track.kind == 'audio') {
-        // this.transcribeAudio(rtp.payload.buffer);
+        try {
+          this.transcribeAudio(packet.payload);
+        } catch (error) {
+          this.logger.error(error);
+        }
       }
     });
 
@@ -53,15 +60,20 @@ export class Track {
     });
   }
 
-  private async transcribeAudio(audioBuffer: ArrayBufferLike) {
+  private async transcribeAudio(payload: Buffer) {
     try {
-      const binaryBuffer = Buffer.from(audioBuffer);
-      
-      this.recognizeStream.write(binaryBuffer);
-      this.recognizeStream.end();
+      const decoded = this.audioDecoder.decode(payload);
+      this.logger.verbose(decoded);
+      this.writeToFile(decoded);
+      // this.recognizeStream.write(decoded);
     } catch (error) {
       this.logger.error('Error transcribing audio:', error);
     }
+  }
+
+  private writeToFile(decoded: Uint8Array) {
+    const filePath = './audio.wav';
+    fs.appendFileSync(filePath, decoded);
   }
 
   private startPLI(ssrc: number) {
@@ -71,6 +83,9 @@ export class Track {
   }
 
   stop = () => {
+    if (this.recognizeStream != null) {
+      this.recognizeStream.end();
+    }
     clearInterval(this.rtcpId);
   };
 }

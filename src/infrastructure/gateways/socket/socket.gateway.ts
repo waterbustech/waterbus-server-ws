@@ -40,8 +40,6 @@ export class SocketGateway
 
   async handleConnection(client: ISocketClient) {
     try {
-      this.logger.debug(`Client connected: ${client.id}`);
-
       const userId = client.request['userId'];
 
       this.authService.createCCU({
@@ -49,6 +47,8 @@ export class SocketGateway
         podName: this.environment.getPodName(),
         userId,
       });
+
+      client.join(SocketEvent.destroy + this.environment.getPodName());
     } catch (error) {
       this.logger.error(error?.message, error?.stack);
       return client.disconnect(true);

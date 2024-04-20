@@ -4,7 +4,7 @@ import {
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
-  MediaRecorder,
+  // MediaRecorder,
 } from 'werift';
 import { Track } from './track';
 import {
@@ -103,18 +103,18 @@ export class Media {
     this.isE2eeEnabled = isEnable;
   }
 
-  startRecord() {
-    if (this.tracks.length != 2) return;
+  // startRecord() {
+  //   if (this.tracks.length != 2) return;
 
-    this.recorder = new MediaRecorder(`./rec/${this.mediaId}.webm`, 2, {
-      width: 640,
-      height: 480,
-    });
+  //   this.recorder = new MediaRecorder(`./rec/${this.mediaId}.webm`, 2, {
+  //     width: 640,
+  //     height: 480,
+  //   });
 
-    this.tracks.forEach((track) => {
-      this.recorder.addTrack(track.track);
-    });
-  }
+  //   this.tracks.forEach((track) => {
+  //     this.recorder.addTrack(track.track);
+  //   });
+  // }
 }
 
 export type MediaInfo = {
