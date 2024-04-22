@@ -6,6 +6,7 @@ import ISocketClient from 'src/domain/models/user.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { Server } from 'socket.io';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
+import { WrapperType } from 'src/infrastructure/config/types/wrapper-type';
 
 @Injectable()
 export class WebRTCManager {
@@ -16,7 +17,7 @@ export class WebRTCManager {
   constructor(
     private environment: EnvironmentConfigService,
     @Inject(forwardRef(() => SocketGateway))
-    private socketGateway: SocketGateway,
+    private socketGateway: WrapperType<SocketGateway>,
   ) {
     this.logger = new Logger(WebRTCManager.name);
   }
