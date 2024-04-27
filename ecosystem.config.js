@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'waterbus.sfu.ws.01',
-      script: 'dist/src/main.js',
+      script: 'dist/main.js',
       instances: 1, // can set is "max" for using max of processors
       autorestart: true,
       watch: false,
