@@ -19,9 +19,13 @@ import Participant from './entities/participant';
 import { Logger } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
+import SocketEvent from 'src/domain/constants/socket_events';
+import {
+  MediaStreamTrack,
+  // MediaRecorder,
+} from 'werift';
 
 export class Room {
-  private roomId: string;
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
   private logger: Logger;
@@ -29,10 +33,9 @@ export class Room {
   constructor(
     private readonly environment: EnvironmentConfigService,
     private readonly serverSocket: SocketGateway,
-    private readonly room: string,
+    private readonly roomId: string,
   ) {
     this.logger = new Logger(Room.name);
-    this.roomId = room;
   }
 
   async join(
@@ -89,14 +92,16 @@ export class Room {
           streams.length > 0 &&
           streams[0].id != '-'
         ) {
-          this.logger.log(`[NEW TRACK]: track info
-          kind: ${track.kind}
-          codec: ${track.codec.mimeType}`);
-          this.participants[participantId].media.addTrack(
+          const isTrackAdded = this.participants[participantId].media.addTrack(
             track,
+            streams[0],
             this.serverSocket,
             this.roomId,
           );
+
+          if (isTrackAdded) {
+            this.addTrackToSubscribersPeer(track, participantId);
+          }
         } else {
           sleep(100);
         }
@@ -122,6 +127,7 @@ export class Room {
   async subscribe(
     targetId: string,
     participantId: string,
+    socketId: string,
     {
       gotIceCandidate,
     }: { gotIceCandidate: (candidate: RTCIceCandidate) => void },
@@ -150,6 +156,23 @@ export class Room {
 
     this.addSubscriber(peerId, peer);
 
+    peer.onnegotiationneeded = async () => {
+      const media = this.getMedia(targetId);
+
+      if (media.tracks.length < 3) return;
+
+      const offer = await peer.createOffer();
+
+      await peer.setLocalDescription(offer);
+
+      this.serverSocket.server
+        .to(socketId)
+        .emit(SocketEvent.subscriberRenegotiationSSC, {
+          targetId: targetId,
+          sdp: offer.sdp,
+        });
+    };
+
     peer.onicecandidate = ({ candidate }) => {
       gotIceCandidate(candidate);
 
@@ -158,18 +181,15 @@ export class Room {
 
     // Add track to subscriber peer
     targetMedia.tracks.forEach((track) => {
-      peer.addTrack(track.track);
+      peer.addTrack(track.track, track.ms);
     });
 
     const offer = await peer.createOffer();
-    // const sdp = this.filterSdpForH264(offer.sdp);
 
-    const updatedOffer = offer;
-
-    await peer.setLocalDescription(updatedOffer);
+    await peer.setLocalDescription(offer);
 
     return {
-      offer: updatedOffer.sdp,
+      offer: offer.sdp,
       cameraType: targetMedia.cameraType,
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
@@ -179,7 +199,7 @@ export class Room {
     };
   }
 
-  async setSubscriberDescriptionSubscriber(
+  async setSubscriberRemoteDescription(
     targetId: string,
     participantId: string,
     sdp: string,
@@ -197,6 +217,27 @@ export class Room {
         participantId,
       )}`,
     );
+  }
+
+  async handlePublisherRenegotiation(
+    participantId: string,
+    sdp: string,
+  ): Promise<string | null> {
+    const participant = this.participants[participantId];
+
+    if (!participant) return;
+
+    const peer = participant.peer;
+
+    const offer = new RTCSessionDescription(sdp, offerType);
+
+    await peer.setRemoteDescription(offer);
+
+    const answer = await peer.createAnswer();
+
+    await peer.setLocalDescription(answer);
+
+    return peer.localDescription.sdp;
   }
 
   async addPublisherIceCandidate(
@@ -259,7 +300,7 @@ export class Room {
   setScreenSharing(participantId: string, isSharing: boolean) {
     if (!this.participants[participantId]) return;
 
-    this.participants[participantId].media.isScreenSharing = isSharing;
+    this.participants[participantId].media.setScreenSharing(isSharing);
   }
 
   async leave(participantId: string) {
@@ -315,11 +356,29 @@ export class Room {
   }
 
   // MARK: private related to subscribers
+  private addTrackToSubscribersPeer(track: MediaStreamTrack, targetId: string) {
+    const prefixTrackId = this.getSubscribersPrefixPeerId(targetId);
+    const peerIds = Object.keys(this.subscribers).filter((trackId) =>
+      trackId.startsWith(prefixTrackId),
+    );
+
+    if (!peerIds) return;
+
+    for (let peerId of peerIds) {
+      let pc: PeerConnection = this.subscribers[peerId];
+      pc.addTrack(track);
+    }
+  }
+
   private getSubscriberPeerId(
     targetId: string,
     participantId: string,
   ): string | null {
     return `p_${targetId}_${participantId}`;
+  }
+
+  private getSubscribersPrefixPeerId(targetId: string): string | null {
+    return `p_${targetId}_`;
   }
 
   private addSubscriber(peerId: string, peer: PeerConnection) {

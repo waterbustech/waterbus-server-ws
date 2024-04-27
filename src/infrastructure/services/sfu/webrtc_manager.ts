@@ -94,7 +94,7 @@ export class WebRTCManager {
 
       if (!room) return;
 
-      const offer = await room.subscribe(targetId, participantId, {
+      const offer = await room.subscribe(targetId, participantId, clientId, {
         gotIceCandidate: (candidate) => {
           if (socketClient instanceof Server) {
             // socketClient is of type Server
@@ -140,7 +140,60 @@ export class WebRTCManager {
 
     if (!room) return;
 
-    await room.setSubscriberDescriptionSubscriber(targetId, participantId, sdp);
+    await room.setSubscriberRemoteDescription(targetId, participantId, sdp);
+  }
+
+  async handlePublisherRenegotiation({
+    clientId,
+    sdp,
+  }: {
+    clientId: string;
+    sdp: string;
+  }) {
+    const clientInfo = this.clients[clientId];
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const participantId = clientInfo.participantId;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    const answerSdp = await room.handlePublisherRenegotiation(
+      participantId,
+      sdp,
+    );
+
+    this.socketGateway.server
+      .to(clientId)
+      .emit(SocketEvent.publisherRenegotiationSSC, {
+        sdp: answerSdp,
+      });
+  }
+
+  async handleSubscriberRenegotiation({
+    clientId,
+    targetId,
+    sdp,
+  }: {
+    clientId: string;
+    targetId: string;
+    sdp: string;
+  }) {
+    const clientInfo = this.clients[clientId];
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const participantId = clientInfo.participantId;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    await room.setSubscriberRemoteDescription(targetId, participantId, sdp);
   }
 
   async addPublisherIceCandidate({

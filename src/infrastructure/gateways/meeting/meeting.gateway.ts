@@ -22,6 +22,8 @@ import RedisEvents from 'src/domain/constants/redis_events';
 import { MessageBroker } from 'src/infrastructure/services/message-broker/message-broker';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { SetSubscribeSubtitleDto } from './dtos/set_subscribe_subtitle.dto';
+import { PublisherRenegotiationDto } from './dtos/publisher_renegotiation.dto';
+import { SubscriberRenegotiationDto } from './dtos/subscriber_renegotiation.dto';
 
 @WebSocketGateway()
 export class MeetingGateway {
@@ -148,6 +150,17 @@ export class MeetingGateway {
         },
       );
     }
+  }
+
+  @SubscribeMessage(SocketEvent.publisherRenegotiationCSS)
+  async handlePublisherRenegotiation(
+    client: ISocketClient,
+    payload: PublisherRenegotiationDto,
+  ) {
+    await this.rtcManager.handlePublisherRenegotiation({
+      clientId: client.id,
+      sdp: payload.sdp,
+    });
   }
 
   @SubscribeMessage(SocketEvent.publisherCandidateCSS)

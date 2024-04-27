@@ -1,9 +1,9 @@
-import { v4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import {
-  Kind,
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
+  MediaStream,
   // MediaRecorder,
 } from 'werift';
 import { Track } from './track';
@@ -18,7 +18,7 @@ import { Logger } from '@nestjs/common';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 
 export class Media {
-  readonly mediaId = 'm_' + v4();
+  readonly mediaId = 'm_' + nanoid();
   private participantId: string;
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
@@ -49,9 +49,21 @@ export class Media {
     return this;
   }
 
-  addTrack(rtpTrack: MediaStreamTrack, server: SocketGateway, roomId: string) {
+  addTrack(
+    rtpTrack: MediaStreamTrack,
+    ms: MediaStream,
+    server: SocketGateway,
+    roomId: string,
+  ): boolean {
+    const trackIndex = this.tracks.findIndex(
+      (track) => track.track.id == rtpTrack.id,
+    );
+
+    if (trackIndex != -1) return false;
+
     const track = new Track(
       rtpTrack,
+      ms,
       this.transceiver!,
       server,
       roomId,
@@ -62,6 +74,40 @@ export class Media {
     if (track.track.kind == 'video') {
       this.codec = track.track.codec.mimeType;
     }
+
+    this.logger.verbose(`
+          [TRACK ADDED]: Info
+          id: ${rtpTrack.id}
+          kind: ${rtpTrack.kind}
+          codec: ${rtpTrack.codec.mimeType}`);
+
+    return true;
+  }
+
+  setScreenSharing(isEnabled: boolean) {
+    if (this.isScreenSharing == isEnabled) return;
+
+    this.isScreenSharing = isEnabled;
+
+    if (!isEnabled) {
+      this.removeLastTrack();
+    }
+  }
+
+  private removeLastTrack() {
+    if (!this.tracks) return;
+
+    const screenTrack = this.tracks.pop();
+
+    screenTrack.stop();
+  }
+
+  removeAllTracks() {
+    for (let track of this.tracks) {
+      track.stop();
+    }
+
+    this.tracks = [];
   }
 
   stop() {

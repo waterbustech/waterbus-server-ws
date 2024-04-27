@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { OpusEncoder } from '@discordjs/opus';
-import { RTCRtpTransceiver, MediaStreamTrack } from 'werift';
+import { RTCRtpTransceiver, MediaStreamTrack, MediaStream } from 'werift';
 import { SpeechClient } from '@google-cloud/speech';
 import fs from 'fs';
 import SocketEvent from 'src/domain/constants/socket_events';
@@ -15,6 +15,7 @@ export class Track {
 
   constructor(
     public track: MediaStreamTrack,
+    public ms: MediaStream,
     public receiver: RTCRtpTransceiver,
     private readonly serverSocket: SocketGateway,
     private readonly roomId: string,
@@ -37,6 +38,12 @@ export class Track {
     track.onReceiveRtp.once((rtp) => {
       this.startPLI(rtp.header.ssrc);
     });
+  }
+
+  private startPLI(ssrc: number) {
+    this.rtcpId = setInterval(() => {
+      this.receiver.receiver.sendRtcpPLI(ssrc);
+    }, 2000);
   }
 
   private initialGoogleSTT(roomId: string, participantId: string) {
@@ -96,12 +103,6 @@ export class Track {
     } catch (error) {
       this.logger.error('Error transcribing audio:', error);
     }
-  }
-
-  private startPLI(ssrc: number) {
-    this.rtcpId = setInterval(() => {
-      this.receiver.receiver.sendRtcpPLI(ssrc);
-    }, 2000);
   }
 
   stop = () => {

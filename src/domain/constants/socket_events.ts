@@ -27,6 +27,11 @@ const SocketEvent = {
   subtitleSSC: 'SUBTITLE_SSC',
   setSubscribeSubtitleCSS: 'SET_SUBSCRIBE_SUBTITLE_CSS',
 
+  publisherRenegotiationCSS: 'PUBLISHER_RENEGOTIATION_CSS',
+  publisherRenegotiationSSC: 'PUBLISHER_RENEGOTIATION_SSC',
+
+  subscriberRenegotiationSSC: 'SUBSCRIBER_RENEGOTIATION_SSC',
+
   // Chats
   sendMessageSSC: 'SEND_MESSAGE_SSC',
   updateMessageSSC: 'UPDATE_MESSAGE_SSC',

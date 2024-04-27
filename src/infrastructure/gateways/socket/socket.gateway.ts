@@ -57,10 +57,6 @@ export class SocketGateway
 
   async handleDisconnect(client: ISocketClient) {
     try {
-      this.authService.removeCCU({
-        socketId: client.id,
-      });
-
       const info = this.rtcManager.leaveRoom({ clientId: client.id });
 
       if (info) {
@@ -75,6 +71,10 @@ export class SocketGateway
         const succeed = await this.meetingService.leaveRoom(info);
         this.logger.debug(`Update leave room in grpc: ${succeed}`);
       }
+
+      this.authService.removeCCU({
+        socketId: client.id,
+      });
       this.logger.debug(`Client disconnected: ${client.id}`);
     } catch (error) {
       this.logger.error(error?.message, error?.stack);
