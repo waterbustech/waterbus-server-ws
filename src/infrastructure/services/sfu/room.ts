@@ -364,8 +364,8 @@ export class Room {
 
     if (!peerIds) return;
 
-    for (let peerId of peerIds) {
-      let pc: PeerConnection = this.subscribers[peerId];
+    for (const peerId of peerIds) {
+      const pc: PeerConnection = this.subscribers[peerId];
       pc.addTrack(track);
     }
   }

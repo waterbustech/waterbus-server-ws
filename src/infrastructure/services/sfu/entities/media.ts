@@ -103,7 +103,7 @@ export class Media {
   }
 
   removeAllTracks() {
-    for (let track of this.tracks) {
+    for (const track of this.tracks) {
       track.stop();
     }
 
