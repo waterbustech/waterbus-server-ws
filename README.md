@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./images/waterbus-mascot-nestjs.png" width="25%"/>
+<img src="./images/waterbus-mascot-nestjs.png" width="100px"/>
 </div>
 
 <h2 align="center">Waterbus Server SFU</h2>
