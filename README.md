@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.com/waterbustech/waterbus/raw/main/assets/images/img_app_logo.png?raw=true" width="25%"/>
+<img src="./images/waterbus-mascot-nestjs.png" width="25%"/>
 </div>
 
 <h2 align="center">Waterbus Server SFU</h2>
