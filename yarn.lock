@@ -8162,10 +8162,10 @@ watchpack@^2.4.0:
     glob-to-regexp "^0.4.1"
     graceful-fs "^4.1.2"
 
-waterbus-proto@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/waterbus-proto/-/waterbus-proto-1.1.3.tgz#c8299d4f65ae338de5030512938d45593044e2c3"
-  integrity sha512-yryziehVIm4WjkImJHdwN51Ut8ZB4ePxDlYFKfWOcK5sHVpx+UE+sJ+sakklF6e0vEQHDI8cSee9WQEkggRY0w==
+waterbus-proto@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/waterbus-proto/-/waterbus-proto-1.1.4.tgz#6fc3add2309a52054d9aa3aee6c64a810b78d011"
+  integrity sha512-kY08Me8Iwp6w7N2fMXj/pB70dkJjd4ntpsQ/kXscf9cKavs0d/UTKLcQ9BPYOhiERx134iDuV5NYKislPkAYCg==
   dependencies:
     "@grpc/grpc-js" "^1.9.3"
     rxjs "^7.8.1"

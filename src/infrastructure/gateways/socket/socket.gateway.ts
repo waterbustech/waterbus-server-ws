@@ -103,11 +103,17 @@ export class SocketGateway
     data,
     event,
     room,
+    socketIds,
   }: {
     data: any;
     event: string;
     room: string;
+    socketIds: string[];
   }) {
     this.server.to(room).emit(event, data);
+
+    if (socketIds) {
+      this.server.to(socketIds).emit(event, data);
+    }
   }
 }

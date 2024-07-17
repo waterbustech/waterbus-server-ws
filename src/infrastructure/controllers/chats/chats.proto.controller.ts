@@ -21,6 +21,7 @@ export class ChatGrpcController implements chat.ChatService {
         data,
         room: data.meeting.toString(),
         event: SocketEvent.sendMessageSSC,
+        socketIds: data.ccus,
       });
 
       const response: chat.MessageResponse = {
@@ -50,6 +51,7 @@ export class ChatGrpcController implements chat.ChatService {
         data,
         room: data.meeting.toString(),
         event: SocketEvent.updateMessageSSC,
+        socketIds: data.ccus,
       });
 
       const response: chat.MessageResponse = {
@@ -79,6 +81,7 @@ export class ChatGrpcController implements chat.ChatService {
         data,
         room: data.meeting.toString(),
         event: SocketEvent.deleteMessageSSC,
+        socketIds: data.ccus,
       });
 
       const response: chat.MessageResponse = {
