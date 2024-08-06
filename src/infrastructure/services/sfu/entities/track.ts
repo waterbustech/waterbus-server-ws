@@ -23,7 +23,7 @@ export class Track {
   ) {
     this.logger = new Logger(Track.name);
 
-    // this.initialGoogleSTT(roomId, participantId);
+    this.initialGoogleSTT(roomId, participantId);
 
     track.onReceiveRtp.subscribe((packet) => {
       if (track.kind == 'audio') {
