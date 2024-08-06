@@ -40,7 +40,9 @@ const SocketEvent = {
   // System
   connection: 'connection',
   disconnect: 'disconnect',
-  destroy: 'destroy_',
+  destroy: 'destroy',
+  sendPodNameSSC: 'SEND_POD_NAME_SSC',
+  reconnect: 'reconnect_CSS',
 } as const;
 
 export default SocketEvent;
