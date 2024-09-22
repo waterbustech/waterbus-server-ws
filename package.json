@@ -23,8 +23,8 @@
     "pm2:start": "pm2 start ecosystem.config.js"
   },
   "dependencies": {
+    "@deepgram/sdk": "^3.6.0",
     "@discordjs/opus": "^0.9.0",
-    "@google-cloud/speech": "^6.5.0",
     "@grpc/grpc-js": "^1.10.6",
     "@nestjs/common": "^10.3.8",
     "@nestjs/config": "^3.2.2",
