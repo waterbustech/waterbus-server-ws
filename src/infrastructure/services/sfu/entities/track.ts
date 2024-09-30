@@ -1,5 +1,4 @@
 import { Logger } from '@nestjs/common';
-import { OpusEncoder } from '@discordjs/opus';
 import { RTCRtpTransceiver, MediaStreamTrack, MediaStream } from 'werift';
 import {
   createClient,
@@ -13,7 +12,6 @@ import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway
 export class Track {
   private rtcpId: any;
   private logger: Logger;
-  private audioDecoder: OpusEncoder;
   private deepgramClient: DeepgramClient;
   private deepgramStream: ListenLiveClient;
   private keepAlive: any;
@@ -54,8 +52,6 @@ export class Track {
   private initializeDeepgramSTT(roomId: string, participantId: string) {
     try {
       const subtitleChannel = SocketEvent.subtitleSSC + roomId;
-
-      this.audioDecoder = new OpusEncoder(16000, 1);
 
       this.deepgramClient = createClient(process.env.DEEPGRAM_API_KEY);
 

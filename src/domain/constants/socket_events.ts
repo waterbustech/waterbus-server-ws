@@ -32,6 +32,14 @@ const SocketEvent = {
 
   subscriberRenegotiationSSC: 'SUBSCRIBER_RENEGOTIATION_SSC',
 
+  // White board
+  startWhiteBoardSSC: 'START_WHITE_BOARD_SSC',
+  startWhiteBoardCSS: 'START_WHITE_BOARD_CSS',
+  updateWhiteBoardCSS: 'UPDATE_WHITE_BOARD_CSS',
+  updateWhiteBoardSSC: 'UPDATE_WHITE_BOARD_SSC',
+  cleanWhiteBoardCSS: 'CLEAN_WHITE_BOARD_CSS',
+  cleanWhiteBoardSSC: 'CLEAN_WHITE_BOARD_SSC',
+
   // Chats
   sendMessageSSC: 'SEND_MESSAGE_SSC',
   updateMessageSSC: 'UPDATE_MESSAGE_SSC',
