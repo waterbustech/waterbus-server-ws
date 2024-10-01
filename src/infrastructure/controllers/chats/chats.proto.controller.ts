@@ -103,4 +103,77 @@ export class ChatGrpcController implements chat.ChatService {
       });
     }
   }
+
+  @GrpcMethod('ChatService', 'newMemberJoined')
+  newMemberJoined(
+    data: chat.NewMemberJoinedRequest,
+  ): Observable<chat.MessageResponse> {
+    try {
+      const payload = {
+        member: data.member,
+        meetingId: data.meetingId,
+      };
+
+      this.socketGateway.emitTo({
+        data: payload,
+        room: null,
+        event: SocketEvent.newMemberJoinedSSC,
+        socketIds: data.ccus,
+      });
+
+      const response: chat.MessageResponse = {
+        succeed: true,
+      };
+
+      return new Observable<chat.MessageResponse>((observer) => {
+        observer.next(response);
+        observer.complete();
+      });
+    } catch (error) {
+      const response: chat.MessageResponse = {
+        succeed: false,
+      };
+
+      return new Observable<chat.MessageResponse>((observer) => {
+        observer.next(response);
+        observer.complete();
+      });
+    }
+  }
+
+  @GrpcMethod('ChatService', 'newInvitation')
+  newInvitation(
+    data: chat.NewInvitationRequest,
+  ): Observable<chat.MessageResponse> {
+    try {
+      const payload = {
+        meeting: data.room,
+      };
+
+      this.socketGateway.emitTo({
+        data: payload,
+        room: null,
+        event: SocketEvent.newInvitationSSC,
+        socketIds: data.ccus,
+      });
+
+      const response: chat.MessageResponse = {
+        succeed: true,
+      };
+
+      return new Observable<chat.MessageResponse>((observer) => {
+        observer.next(response);
+        observer.complete();
+      });
+    } catch (error) {
+      const response: chat.MessageResponse = {
+        succeed: false,
+      };
+
+      return new Observable<chat.MessageResponse>((observer) => {
+        observer.next(response);
+        observer.complete();
+      });
+    }
+  }
 }

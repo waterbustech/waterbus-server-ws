@@ -44,6 +44,8 @@ const SocketEvent = {
   sendMessageSSC: 'SEND_MESSAGE_SSC',
   updateMessageSSC: 'UPDATE_MESSAGE_SSC',
   deleteMessageSSC: 'DELETE_MESSAGE_SSC',
+  newMemberJoinedSSC: 'NEW_MEMBER_JOINED_SSC',
+  newInvitationSSC: 'NEW_INVITATION_SSC',
 
   // System
   connection: 'connection',

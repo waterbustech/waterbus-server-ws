@@ -28,8 +28,9 @@ export class Track {
 
     this.initializeDeepgramSTT(roomId, participantId);
 
+    // Handle RTP packets for audio
     track.onReceiveRtp.subscribe((packet) => {
-      if (track.kind == 'audio') {
+      if (track.kind === 'audio') {
         try {
           this.transcribeAudio(packet.payload);
         } catch (error) {
@@ -38,61 +39,89 @@ export class Track {
       }
     });
 
+    // Start PLI once for RTP
     track.onReceiveRtp.once((rtp) => {
       this.startPLI(rtp.header.ssrc);
     });
   }
 
+  // Send Picture Loss Indication (PLI)
   private startPLI(ssrc: number) {
     this.rtcpId = setInterval(() => {
       this.receiver.receiver.sendRtcpPLI(ssrc);
     }, 2000);
   }
 
+  // Initialize Deepgram's Speech-to-Text (STT) service
   private initializeDeepgramSTT(roomId: string, participantId: string) {
+    if (!process.env.DEEPGRAM_API_KEY) return;
+
     try {
       const subtitleChannel = SocketEvent.subtitleSSC + roomId;
 
+      // Initialize Deepgram Client
       this.deepgramClient = createClient(process.env.DEEPGRAM_API_KEY);
 
+      // Start a Deepgram transcription stream
       this.deepgramStream = this.deepgramClient.listen.live({
         language: 'en',
         punctuate: true,
         smart_format: true,
         model: 'nova-2',
+        channels: 1,
+        sample_rate: 16000,
+        encoding: 'opus',
       });
 
+      // Maintain Deepgram connection via keep-alive mechanism
       if (this.keepAlive) clearInterval(this.keepAlive);
       this.keepAlive = setInterval(() => {
-        console.log('deepgram: keepalive');
         this.deepgramStream.keepAlive();
       }, 10 * 1000);
 
       this.deepgramStream.addListener(
-        LiveTranscriptionEvents.Transcript,
-        (data) => {
-          if (
-            data.speech_final &&
-            data.is_final &&
-            data.channel &&
-            data.channel.alternatives[0].transcript
-          ) {
-            const transcription = data.channel.alternatives[0].transcript;
+        LiveTranscriptionEvents.Open,
+        async () => {
+          this.logger.log('deepgram: connected');
+          // Handle incoming transcriptions from Deepgram
+          this.deepgramStream.addListener(
+            LiveTranscriptionEvents.Transcript,
+            (data) => {
+              const transcript = data.channel.alternatives[0].transcript;
+              if (data.speech_final && data.is_final && transcript) {
+                // Emit transcript to WebSocket clients
+                this.serverSocket.server
+                  .to(subtitleChannel)
+                  .emit(SocketEvent.subtitleSSC, {
+                    participantId,
+                    transcription: transcript,
+                  });
+              }
+            },
+          );
 
-            this.serverSocket.server
-              .to(subtitleChannel)
-              .emit(SocketEvent.subtitleSSC, {
-                participantId,
-                transcription,
-              });
-          }
-        },
-      );
+          // Handle errors from Deepgram
+          this.deepgramStream.addListener(
+            LiveTranscriptionEvents.Error,
+            (error) => {
+              this.logger.error('Error from Deepgram:', error);
+            },
+          );
 
-      this.deepgramStream.addListener(
-        LiveTranscriptionEvents.Error,
-        (error) => {
-          this.logger.error('Error from Deepgram:', error);
+          this.deepgramStream.addListener(
+            LiveTranscriptionEvents.Close,
+            async () => {
+              this.stop();
+            },
+          );
+
+          this.deepgramStream.addListener(
+            LiveTranscriptionEvents.Metadata,
+            (data) => {
+              this.logger.log('deepgram: packet received');
+              this.logger.log('deepgram: metadata received');
+            },
+          );
         },
       );
     } catch (error) {
@@ -100,24 +129,28 @@ export class Track {
     }
   }
 
+  // Transcribe audio from the WebRTC track
   private async transcribeAudio(payload: Buffer) {
     try {
       if (
         this.deepgramStream &&
         this.deepgramStream.getReadyState() === 1 /* OPEN */
       ) {
-        const decoded = this.audioDecoder.decode(payload);
-        this.deepgramStream.send(decoded);
+        this.deepgramStream.send(payload);
       }
     } catch (error) {
       this.logger.error('Error transcribing audio:', error);
     }
   }
 
+  // Stop the transcription and close connections
   stop = () => {
     if (this.deepgramStream) {
-      this.deepgramStream.requestClose();
+      this.deepgramStream.requestClose(); // Close Deepgram stream
     }
-    clearInterval(this.rtcpId);
+    clearInterval(this.rtcpId); // Clear PLI interval
+    if (this.keepAlive) {
+      clearInterval(this.keepAlive);
+    }
   };
 }

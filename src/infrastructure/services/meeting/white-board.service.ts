@@ -56,7 +56,7 @@ export class WhiteBoardGrpcService implements OnModuleInit {
   connect(): void {
     this.whiteBoardService = new ClientService<whiteboard.WhiteBoardService>(
       this.whiteBoardClientProxy,
-      'RecordService',
+      'WhiteBoardService',
     ).getInstance();
   }
 
