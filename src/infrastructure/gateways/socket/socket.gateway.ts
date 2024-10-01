@@ -133,10 +133,12 @@ export class SocketGateway
   }: {
     data: any;
     event: string;
-    room: string;
+    room: string | null;
     socketIds: string[];
   }) {
-    this.server.to(room).emit(event, data);
+    if (room) {
+      this.server.to(room).emit(event, data);
+    }
 
     if (socketIds) {
       this.server.to(socketIds).emit(event, data);

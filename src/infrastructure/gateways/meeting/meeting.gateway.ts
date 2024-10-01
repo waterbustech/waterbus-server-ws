@@ -23,7 +23,9 @@ import { MessageBroker } from 'src/infrastructure/services/message-broker/messag
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { SetSubscribeSubtitleDto } from './dtos/set_subscribe_subtitle.dto';
 import { PublisherRenegotiationDto } from './dtos/publisher_renegotiation.dto';
-import { SubscriberRenegotiationDto } from './dtos/subscriber_renegotiation.dto';
+import { StartWhiteBoardDto } from './dtos/start_white_board.dto';
+import { UpdateWhiteBoardDto } from './dtos/update_white_board.dto';
+import { CleanWhiteBoardDto } from './dtos/clean_board.dto';
 
 @WebSocketGateway()
 export class MeetingGateway {
@@ -347,6 +349,34 @@ export class MeetingGateway {
     });
   }
 
+  @SubscribeMessage(SocketEvent.startWhiteBoardCSS)
+  handleStartWhiteBoard(
+    client: ISocketClient,
+    payload: StartWhiteBoardDto,
+  ): any {
+    client.join(this._getWhiteBoardRoom(payload.roomId));
+  }
+
+  @SubscribeMessage(SocketEvent.updateWhiteBoardCSS)
+  handleUpdateWhiteBoard(
+    client: ISocketClient,
+    payload: UpdateWhiteBoardDto,
+  ): any {
+    client
+      .to(this._getWhiteBoardRoom(payload.roomId))
+      .emit(SocketEvent.updateWhiteBoardSSC, payload);
+  }
+
+  @SubscribeMessage(SocketEvent.cleanWhiteBoardCSS)
+  handleCleanWhiteBoard(
+    client: ISocketClient,
+    payload: CleanWhiteBoardDto,
+  ): any {
+    client
+      .to(this._getWhiteBoardRoom(payload.roomId))
+      .to(SocketEvent.cleanWhiteBoardSSC);
+  }
+
   @SubscribeMessage(SocketEvent.setSubscribeSubtitleCSS)
   handleSetSubscribeSubtitle(
     client: ISocketClient,
@@ -385,5 +415,9 @@ export class MeetingGateway {
       const succeed = await this.meetingService.leaveRoom(info);
       this.logger.debug(`Update leave room in grpc: ${succeed}`);
     }
+  }
+
+  private _getWhiteBoardRoom(roomId: string): string {
+    return `white-board-${roomId}`;
   }
 }

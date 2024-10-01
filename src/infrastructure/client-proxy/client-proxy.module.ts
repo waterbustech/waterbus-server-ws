@@ -20,6 +20,12 @@ export const getGrpcClientOptions = (
     case EPackage.MEETING:
       url = config.getMeetingGrpcUrl();
       break;
+    case EPackage.WHITEBOARD:
+      url = config.getWhiteBoardGrpcUrl();
+      break;
+    case EPackage.RECORD:
+      url = config.getRecordGrpcUrl();
+      break;
   }
   return {
     transport: Transport.GRPC,
@@ -40,6 +46,8 @@ export const getGrpcClientOptions = (
 export class ClientProxyModule {
   static authClientProxy = 'authClientProxy';
   static meetingClientProxy = 'meetingClientProxy';
+  static whiteBoardClientProxy = 'whiteBoardClientProxy';
+  static recordClientProxy = 'recordClientProxy';
 
   static register(): DynamicModule {
     return {
@@ -61,10 +69,28 @@ export class ClientProxyModule {
               getGrpcClientOptions(config, EPackage.MEETING),
             ),
         },
+        {
+          provide: ClientProxyModule.whiteBoardClientProxy,
+          inject: [EnvironmentConfigService],
+          useFactory: (config: EnvironmentConfigService) =>
+            ClientProxyFactory.create(
+              getGrpcClientOptions(config, EPackage.WHITEBOARD),
+            ),
+        },
+        {
+          provide: ClientProxyModule.recordClientProxy,
+          inject: [EnvironmentConfigService],
+          useFactory: (config: EnvironmentConfigService) =>
+            ClientProxyFactory.create(
+              getGrpcClientOptions(config, EPackage.RECORD),
+            ),
+        },
       ],
       exports: [
         ClientProxyModule.authClientProxy,
         ClientProxyModule.meetingClientProxy,
+        ClientProxyModule.whiteBoardClientProxy,
+        ClientProxyModule.recordClientProxy,
       ],
     };
   }

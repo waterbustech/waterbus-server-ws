@@ -26,6 +26,14 @@ export class EnvironmentConfigService {
     return this.configService.get<string>('MEETING_GRPC_ADDRESS');
   }
 
+  getRecordGrpcUrl(): string {
+    return this.configService.get<string>('RECORD_GRPC_ADDRESS');
+  }
+
+  getWhiteBoardGrpcUrl(): string {
+    return this.configService.get<string>('WHITE_BOARD_GRPC_ADDRESS');
+  }
+
   getTurnUsername(): string {
     return this.configService.get<string>('TURN_USERNAME');
   }
