@@ -23,6 +23,7 @@ async function bootstrap() {
 
   const configService = app.get(EnvironmentConfigService);
   const realtimeGrpcUrl = configService.getRealtimeGrpcUrl();
+  const recordGrpcUrl = configService.getRecordGrpcUrl();
 
   const realtimeMicroserviceOptions: MicroserviceOptions = {
     transport: Transport.GRPC,
@@ -36,7 +37,20 @@ async function bootstrap() {
     },
   };
 
+  const recordMicroserviceOptions: MicroserviceOptions = {
+    transport: Transport.GRPC,
+    options: {
+      package: EPackage.RECORD,
+      protoPath: getProtoPath(EPackage.RECORD),
+      url: recordGrpcUrl,
+      loader: {
+        includeDirs: [getIncludeDirs()],
+      },
+    },
+  };
+
   app.connectMicroservice(realtimeMicroserviceOptions);
+  app.connectMicroservice(recordMicroserviceOptions);
 
   await app.startAllMicroservices();
   await app.listen(config.getPort());

@@ -23,9 +23,6 @@ export const getGrpcClientOptions = (
     case EPackage.WHITEBOARD:
       url = config.getWhiteBoardGrpcUrl();
       break;
-    case EPackage.RECORD:
-      url = config.getRecordGrpcUrl();
-      break;
   }
   return {
     transport: Transport.GRPC,

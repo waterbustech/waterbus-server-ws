@@ -339,6 +339,18 @@ export class WebRTCManager {
     room.setScreenSharing(participantId, isSharing);
   }
 
+  startRecord({
+    recordId,
+    roomId,
+    participantId,
+  }: {
+    recordId: number;
+    roomId: number;
+    participantId: number;
+  }) {}
+
+  stopRecord({ recordId }) {}
+
   leaveRoom({ clientId }: { clientId: string }): IClient | null {
     const clientInfo = this.clients[clientId];
 
