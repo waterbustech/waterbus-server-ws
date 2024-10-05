@@ -3,6 +3,7 @@
     "esm": true
   },
   "compilerOptions": {
+    "moduleResolution": "node",
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,

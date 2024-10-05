@@ -342,14 +342,30 @@ export class WebRTCManager {
   startRecord({
     recordId,
     roomId,
-    participantId,
   }: {
     recordId: number;
     roomId: number;
-    participantId: number;
-  }) {}
+  }): boolean {
+    const room = this.rooms[roomId];
 
-  stopRecord({ recordId }) {}
+    if (!room) return false;
+
+    if (room.recordId) return false;
+
+    room.startRecord({ recordId });
+
+    return true;
+  }
+
+  stopRecord({ roomId }: { roomId }) {
+    const room = this.rooms[roomId];
+
+    if (!room || !room.recordId) return;
+
+    const res = room.stopRecord();
+
+    return res;
+  }
 
   leaveRoom({ clientId }: { clientId: string }): IClient | null {
     const clientInfo = this.clients[clientId];

@@ -24,10 +24,13 @@ import {
   MediaStreamTrack,
   // MediaRecorder,
 } from 'werift';
+import { RecordTrack } from 'src/domain/models/record-track';
 
 export class Room {
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
+  public recordId: number;
+  private records: RecordTrack[] = [];
   private logger: Logger;
 
   constructor(
@@ -101,6 +104,17 @@ export class Room {
 
           if (isTrackAdded) {
             this.addTrackToSubscribersPeer(track, participantId);
+          }
+
+          const media = this.participants[participantId].media;
+
+          if (media.tracks.length > 1 && this.recordId) {
+            const videoPath = media.startRecord();
+
+            this._addRecordTrack({
+              participantId: Number(participantId),
+              videoPath,
+            });
           }
         } else {
           sleep(100);
@@ -303,6 +317,57 @@ export class Room {
     this.participants[participantId].media.setScreenSharing(isSharing);
   }
 
+  startRecord({ recordId }: { recordId: number }) {
+    if (this.recordId) return;
+
+    this.recordId = recordId;
+
+    for (const key in this.participants) {
+      if (this.participants.hasOwnProperty(key)) {
+        const participant = this.participants[key];
+        const videoPath = participant.media.startRecord();
+
+        this._addRecordTrack({ participantId: Number(key), videoPath });
+      }
+    }
+  }
+
+  stopRecord() {
+    if (!this.recordId) return;
+
+    const recordId = this.recordId;
+
+    this.recordId = null;
+
+    console.log('Stop Record...');
+
+    for (const key in this.participants) {
+      if (this.participants.hasOwnProperty(key)) {
+        this.participants[key].media.stopRecord();
+      }
+    }
+
+    let tracks = [];
+
+    for (const track of this.records) {
+      tracks.push({
+        participantId: track.participantId,
+        urlToVideos: track.videoPath,
+      });
+    }
+
+    const res = {
+      recordId: recordId,
+      tracks: tracks,
+    };
+
+    if (!tracks) return null;
+
+    this.records = [];
+
+    return res;
+  }
+
   async leave(participantId: string) {
     this.logger.log(`[IN_ROOM] ${participantId} has left`);
     this.removeAllSubscribersWithTargetId(participantId);
@@ -314,6 +379,23 @@ export class Room {
     }
 
     delete this.participants[participantId];
+  }
+
+  private _addRecordTrack({
+    participantId,
+    videoPath,
+  }: {
+    participantId: number;
+    videoPath: string;
+  }) {
+    if (!this.recordId) return;
+
+    const track: RecordTrack = {
+      participantId,
+      videoPath,
+    };
+
+    this.records.push(track);
   }
 
   private getSubscriberPeer(

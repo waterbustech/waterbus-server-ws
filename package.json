@@ -9,7 +9,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "start": "yarn add-export && nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "pm2": "yarn build && yarn pm2:start",
-    "pm2:start": "pm2 start ecosystem.config.js"
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "add-export": "node add-export-werift.js"
   },
   "dependencies": {
     "@deepgram/sdk": "^3.6.0",
@@ -47,8 +48,8 @@
     "socket.io": "^4.7.5",
     "socket.io-adapter": "^2.5.4",
     "socket.io-redis": "^6.1.1",
-    "waterbus-proto": "^1.1.11",
-    "werift": "^0.19.1",
+    "waterbus-proto": "^1.1.15",
+    "werift": "/Users/lambiengcode/Documents/werift-webrtc/packages/webrtc",
     "winston": "^3.13.0"
   },
   "devDependencies": {

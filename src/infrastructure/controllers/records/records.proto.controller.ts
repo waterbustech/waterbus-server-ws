@@ -18,9 +18,15 @@ export class RecordGrpcController implements recordtrack.RecordService {
     data: recordtrack.StartRecordRequest,
   ): Observable<recordtrack.RecordResponse> {
     return new Observable<recordtrack.RecordResponse>((observer) => {
+      const isSucceed = this.rtcManager.startRecord({
+        roomId: data.meetingId,
+        recordId: data.recordId,
+      });
+
       const response: recordtrack.RecordResponse = {
-        succeed: false,
-        recordId: null,
+        succeed: isSucceed,
+        recordId: data.recordId,
+        tracks: [],
       };
       observer.next(response);
       observer.complete();
@@ -32,10 +38,23 @@ export class RecordGrpcController implements recordtrack.RecordService {
     data: recordtrack.StopRecordRequest,
   ): Observable<recordtrack.RecordResponse> {
     return new Observable<recordtrack.RecordResponse>((observer) => {
-      const response: recordtrack.RecordResponse = {
+      const res = this.rtcManager.stopRecord({
+        roomId: data.meetingId,
+      });
+
+      let response: recordtrack.RecordResponse = {
         succeed: false,
         recordId: null,
+        tracks: null,
       };
+
+      if (res) {
+        response = {
+          succeed: true,
+          recordId: res.recordId,
+          tracks: res.tracks,
+        };
+      }
       observer.next(response);
       observer.complete();
     });

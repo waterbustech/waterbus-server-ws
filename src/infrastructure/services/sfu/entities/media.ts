@@ -4,7 +4,7 @@ import {
   MediaStreamTrack,
   RTCRtpCodecParameters,
   MediaStream,
-  // MediaRecorder,
+  MediaRecorder,
 } from 'werift';
 import { Track } from './track';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../../../../domain/constants/webrtc_config';
 import { Logger } from '@nestjs/common';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
+import * as path from 'path';
 
 export class Media {
   readonly mediaId = 'm_' + nanoid();
@@ -111,9 +112,7 @@ export class Media {
   }
 
   stop() {
-    if (this.recorder != null) {
-      this.recorder.stop();
-    }
+    this.stopRecord();
 
     this.tracks.forEach((track) => track.stop());
   }
@@ -157,18 +156,48 @@ export class Media {
     this.isE2eeEnabled = isEnable;
   }
 
-  // startRecord() {
-  //   if (this.tracks.length != 2) return;
+  startRecord(): string {
+    if (this.tracks.length != 2 || this.recorder) return;
 
-  //   this.recorder = new MediaRecorder(`./rec/${this.mediaId}.webm`, 2, {
-  //     width: 640,
-  //     height: 480,
-  //   });
+    const uniqueFileName = `${nanoid(15)}.webm`;
 
-  //   this.tracks.forEach((track) => {
-  //     this.recorder.addTrack(track.track);
-  //   });
-  // }
+    const filePath = path.resolve(process.cwd(), 'rec', uniqueFileName);
+
+    console.log(filePath);
+
+    let videoTrack;
+    let audioTrack;
+
+    this.tracks.forEach((track) => {
+      if (track.track.kind == 'video') {
+        if (!videoTrack) videoTrack = track.track;
+      } else {
+        audioTrack = track.track;
+      }
+    });
+
+    let numberOfTracks = 1;
+
+    if (videoTrack) numberOfTracks = 2;
+
+    this.recorder = new MediaRecorder(filePath, numberOfTracks, {
+      width: 640,
+      height: 480,
+    });
+
+    if (videoTrack) this.recorder.addTrack(videoTrack);
+    if (audioTrack) this.recorder.addTrack(audioTrack);
+
+    return filePath;
+  }
+
+  stopRecord() {
+    if (this.recorder != null) {
+      this.recorder.stop();
+    }
+
+    this.recorder = null;
+  }
 }
 
 export type MediaInfo = {
