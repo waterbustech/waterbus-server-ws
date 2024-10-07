@@ -133,7 +133,7 @@ export class Room {
       };
     } catch (error) {
       this.logger.error(
-        `[JOIN ROOM]: fail with error ${JSON.stringify(error)}`,
+        `[JOIN ROOM]: fail with error ${error}`,
       );
     }
   }

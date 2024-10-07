@@ -1,11 +1,10 @@
-import { nanoid } from 'nanoid';
 import {
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
   MediaStream,
-  MediaRecorder,
 } from 'werift';
+import { MediaRecorder, MediaRecorderOptions } from 'werift/nonstandard';
 import { Track } from './track';
 import {
   kAV1Codec,
@@ -19,7 +18,7 @@ import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway
 import * as path from 'path';
 
 export class Media {
-  readonly mediaId = 'm_' + nanoid();
+  readonly mediaId = 'm_' + crypto.randomUUID();
   private participantId: string;
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
@@ -159,34 +158,30 @@ export class Media {
   startRecord(): string {
     if (this.tracks.length != 2 || this.recorder) return;
 
-    const uniqueFileName = `${nanoid(15)}.webm`;
+    const uniqueFileName = `${crypto.randomUUID()}.webm`;
 
     const filePath = path.resolve(process.cwd(), 'rec', uniqueFileName);
 
-    console.log(filePath);
-
-    let videoTrack;
-    let audioTrack;
-
-    this.tracks.forEach((track) => {
-      if (track.track.kind == 'video') {
-        if (!videoTrack) videoTrack = track.track;
-      } else {
-        audioTrack = track.track;
-      }
-    });
-
-    let numberOfTracks = 1;
-
-    if (videoTrack) numberOfTracks = 2;
-
-    this.recorder = new MediaRecorder(filePath, numberOfTracks, {
+    const options: MediaRecorderOptions = {
       width: 640,
       height: 480,
+      jitterBufferLatency: 200,
+      jitterBufferSize: 100,
+      disableLipSync: false,
+      waitForKeyframe: true,
+      defaultDuration: 3000,
+      disableNtp: false,
+      tracks: this.tracks.map((t) => t.track),
+    };
+
+    this.recorder = new MediaRecorder({
+      numOfTracks: this.tracks.length,
+      path: filePath,
+      ...options,
     });
 
-    if (videoTrack) this.recorder.addTrack(videoTrack);
-    if (audioTrack) this.recorder.addTrack(audioTrack);
+    // if (videoTrack) this.recorder.addTrack(videoTrack);
+    // if (audioTrack) this.recorder.addTrack(audioTrack);
 
     return filePath;
   }

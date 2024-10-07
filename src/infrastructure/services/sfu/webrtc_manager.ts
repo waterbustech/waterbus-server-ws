@@ -7,6 +7,7 @@ import { EnvironmentConfigService } from 'src/infrastructure/config/environment/
 import { Server } from 'socket.io';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 import { WrapperType } from 'src/infrastructure/config/types/wrapper-type';
+import { IClient } from 'src/domain/models/client.interface';
 
 @Injectable()
 export class WebRTCManager {

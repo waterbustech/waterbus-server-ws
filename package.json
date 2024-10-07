@@ -41,7 +41,6 @@
     "dotenv": "^16.4.5",
     "google-protobuf": "^3.21.2",
     "multicast-dns": "^7.2.5",
-    "nanoid": "3.1.31",
     "redis": "^4.6.13",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -49,7 +48,7 @@
     "socket.io-adapter": "^2.5.4",
     "socket.io-redis": "^6.1.1",
     "waterbus-proto": "^1.1.15",
-    "werift": "/Users/lambiengcode/Documents/werift-webrtc/packages/webrtc",
+    "werift": "^0.19.1",
     "winston": "^3.13.0"
   },
   "devDependencies": {
