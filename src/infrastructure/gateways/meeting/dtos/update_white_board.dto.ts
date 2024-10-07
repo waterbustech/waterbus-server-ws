@@ -7,6 +7,7 @@ export interface PaintModel {
   width: number;
   poligonSides: number;
   isFilled: boolean;
+  type: string;
 }
 
 export interface OffsetModel {
