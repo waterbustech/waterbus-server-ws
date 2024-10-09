@@ -54,7 +54,6 @@ Before getting started, ensure you have the following software installed:
 ```sh
 git clone https://github.com/waterbustech/waterbus-server-ws.git
 cd waterbus-server-ws/
-mkdir rec # use for store temp record files
 ```
 
 - Create .env file
