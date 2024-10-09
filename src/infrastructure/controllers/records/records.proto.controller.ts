@@ -26,7 +26,6 @@ export class RecordGrpcController implements recordtrack.RecordService {
       const response: recordtrack.RecordResponse = {
         succeed: isSucceed,
         recordId: data.recordId,
-        tracks: [],
       };
       observer.next(response);
       observer.complete();
@@ -45,14 +44,12 @@ export class RecordGrpcController implements recordtrack.RecordService {
       let response: recordtrack.RecordResponse = {
         succeed: false,
         recordId: null,
-        tracks: null,
       };
 
       if (res) {
         response = {
           succeed: true,
           recordId: res.recordId,
-          tracks: res.tracks,
         };
       }
       observer.next(response);

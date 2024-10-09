@@ -13,7 +13,7 @@ import { WhiteBoardGrpcService } from '../services/meeting/white-board.service';
 @Module({
   imports: [
     ClientProxyModule.register(),
-    WebRTCModule,
+    forwardRef(() => WebRTCModule),
     EnvironmentConfigModule,
   ],
   providers: [
@@ -34,11 +34,10 @@ import { WhiteBoardGrpcService } from '../services/meeting/white-board.service';
       useFactory: (clientProxy: ClientGrpc) =>
         new WhiteBoardGrpcService(clientProxy),
     },
-
-    MessageBroker,
     SocketGateway,
     MeetingGateway,
+    MessageBroker,
   ],
-  exports: [SocketGateway],
+  exports: [SocketGateway, MeetingGrpcService, MessageBroker],
 })
 export class GatewayModule {}

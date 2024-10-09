@@ -34,6 +34,10 @@ export class EnvironmentConfigService {
     return this.configService.get<string>('WHITE_BOARD_GRPC_ADDRESS');
   }
 
+  getUploadRecordUrl(): string {
+    return this.configService.get<string>('UPLOAD_RECORD_URL');
+  }
+
   getTurnUsername(): string {
     return this.configService.get<string>('TURN_USERNAME');
   }
