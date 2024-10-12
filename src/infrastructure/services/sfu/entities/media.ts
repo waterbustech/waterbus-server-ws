@@ -30,6 +30,7 @@ export class Media {
   codec: string;
   private logger: Logger;
   private recorder: MediaRecorder;
+  private callbackStopRecord?: () => void;
 
   constructor(
     readonly publisherId: string,
@@ -155,6 +156,10 @@ export class Media {
     this.isE2eeEnabled = isEnable;
   }
 
+  setCallback(callback: () => void) {
+    this.callbackStopRecord = callback;
+  }
+
   startRecord(): string {
     if (this.tracks.length != 2 || this.recorder) return;
 
@@ -180,14 +185,12 @@ export class Media {
       ...options,
     });
 
-    // if (videoTrack) this.recorder.addTrack(videoTrack);
-    // if (audioTrack) this.recorder.addTrack(audioTrack);
-
     return filePath;
   }
 
   stopRecord() {
     if (this.recorder != null) {
+      if (this.callbackStopRecord) this.callbackStopRecord();
       this.recorder.stop();
     }
 

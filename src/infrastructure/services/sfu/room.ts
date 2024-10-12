@@ -342,14 +342,6 @@ export class Room {
     for (const key in this.participants) {
       if (this.participants.hasOwnProperty(key)) {
         this.participants[key].media.stopRecord();
-
-        let indexOfTrack = this.records.findIndex(
-          (pTrack) => pTrack.participantId === Number(key),
-        );
-
-        if (indexOfTrack > -1) {
-          this.records[indexOfTrack].endTime = this._getCurrentTime();
-        }
       }
     }
 
@@ -443,6 +435,16 @@ export class Room {
       isAudioEnabled,
       isE2eeEnabled,
     );
+
+    media.setCallback(() => {
+      let indexOfTrack = this.records.findIndex(
+        (pTrack) => pTrack.participantId === Number(publisherId),
+      );
+
+      if (indexOfTrack > -1) {
+        this.records[indexOfTrack].endTime = this._getCurrentTime();
+      }
+    });
 
     const transceiver = peer.addTransceiver('video', { direction: 'recvonly' });
     media.initAV(transceiver);
