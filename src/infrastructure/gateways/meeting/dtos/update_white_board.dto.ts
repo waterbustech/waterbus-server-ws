@@ -2,13 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { WhiteBoardAction } from 'src/domain/models/white-board-action';
 
 export enum PaintType {
-  pencil = 'pencil',
-  stamp = 'stamp',
-  spray = 'spray',
-  fill = 'fill',
+  normal = 'normal',
+  polygon = 'polygon',
+  circle = 'circle',
+  square = 'square',
   line = 'line',
   eraser = 'eraser',
-  ruler = 'ruler',
 }
 
 export interface PaintModel {
