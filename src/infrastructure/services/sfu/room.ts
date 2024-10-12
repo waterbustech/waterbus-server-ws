@@ -349,6 +349,8 @@ export class Room {
     const records = this.records.map((r) => r);
 
     this.uploadFilesService.uploadVideos(filePaths).then((savedFiles) => {
+      if (!savedFiles) return;
+
       let tracks: meeting.RecordTrackRequest[] = [];
 
       for (let i = 0; i < savedFiles.length; i++) {

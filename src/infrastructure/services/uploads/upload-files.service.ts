@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import FormData from 'form-data';
-import { AxiosRequestConfig } from 'axios';
 import * as fs from 'fs';
 import { lastValueFrom } from 'rxjs';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
