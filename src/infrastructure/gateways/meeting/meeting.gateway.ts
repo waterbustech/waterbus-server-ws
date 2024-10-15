@@ -26,6 +26,8 @@ import { PublisherRenegotiationDto } from './dtos/publisher_renegotiation.dto';
 import { StartWhiteBoardDto } from './dtos/start_white_board.dto';
 import { UpdateWhiteBoardDto } from './dtos/update_white_board.dto';
 import { CleanWhiteBoardDto } from './dtos/clean_board.dto';
+import { WhiteBoardGrpcService } from 'src/infrastructure/services/meeting/white-board.service';
+import { WhiteBoardAction } from 'src/domain/models/white-board-action';
 
 @WebSocketGateway()
 export class MeetingGateway {
@@ -36,6 +38,7 @@ export class MeetingGateway {
     private readonly meetingService: MeetingGrpcService,
     private readonly messageBroker: MessageBroker,
     private readonly environment: EnvironmentConfigService,
+    private readonly whiteBoardGrpcService: WhiteBoardGrpcService,
   ) {
     this.podName = this.environment.getPodName();
   }
@@ -350,31 +353,53 @@ export class MeetingGateway {
   }
 
   @SubscribeMessage(SocketEvent.startWhiteBoardCSS)
-  handleStartWhiteBoard(
+  async handleStartWhiteBoard(
     client: ISocketClient,
     payload: StartWhiteBoardDto,
-  ): any {
+  ) {
     client.join(this._getWhiteBoardRoom(payload.roomId));
+
+    const board = await this.whiteBoardGrpcService.getBoard({
+      meetingId: Number(payload.roomId),
+    });
+
+    if (board.succeed) {
+      this.server
+        .to(client.id)
+        .emit(SocketEvent.startWhiteBoardSSC, board.paints);
+    }
   }
 
   @SubscribeMessage(SocketEvent.updateWhiteBoardCSS)
-  handleUpdateWhiteBoard(
+  async handleUpdateWhiteBoard(
     client: ISocketClient,
     payload: UpdateWhiteBoardDto,
-  ): any {
+  ) {
     client
       .to(this._getWhiteBoardRoom(payload.roomId))
       .emit(SocketEvent.updateWhiteBoardSSC, payload);
+
+    await this.whiteBoardGrpcService.updateBoard({
+      meetingId: Number(payload.roomId),
+      action: payload.action,
+      paints: payload.paints,
+    });
   }
 
   @SubscribeMessage(SocketEvent.cleanWhiteBoardCSS)
-  handleCleanWhiteBoard(
+  async handleCleanWhiteBoard(
     client: ISocketClient,
     payload: CleanWhiteBoardDto,
-  ): any {
+  ) {
     client
       .to(this._getWhiteBoardRoom(payload.roomId))
       .to(SocketEvent.cleanWhiteBoardSSC);
+
+    await this.whiteBoardGrpcService.updateBoard({
+      meetingId: Number(payload.roomId),
+      action: WhiteBoardAction.clean,
+      paints: [],
+    });
   }
 
   @SubscribeMessage(SocketEvent.setSubscribeSubtitleCSS)
