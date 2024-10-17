@@ -62,7 +62,7 @@ export class WebRTCManager {
 
       const room = this.rooms[roomId];
 
-      const { offer, otherParticipants } = await room.join(
+      const { offer, otherParticipants, isRecording } = await room.join(
         sdp,
         isVideoEnabled,
         isAudioEnabled,
@@ -76,6 +76,7 @@ export class WebRTCManager {
       return {
         sdp: offer,
         otherParticipants: otherParticipants,
+        isRecording: isRecording,
       };
     } catch (error) {
       this.logger.error(
@@ -352,6 +353,27 @@ export class WebRTCManager {
     room.setScreenSharing(participantId, isSharing);
   }
 
+  async setHandRaising({
+    clientId,
+    isRaising,
+  }: {
+    clientId: string;
+    isRaising: boolean;
+  }) {
+    const clientInfo = this.clients[clientId];
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const participantId = clientInfo.participantId;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setHandRaising(participantId, isRaising);
+  }
+
   startRecord({
     recordId,
     roomId,
@@ -370,6 +392,10 @@ export class WebRTCManager {
     room.startRecord({ recordId });
 
     if (isGrpcRequest) {
+      this.socketGateway.server
+        .to(roomId.toString())
+        .emit(SocketEvent.startRecordSSC);
+
       this.messageBroker.publishRedisChannel(
         RedisChannel.EVERYBODY,
         RedisEvents.START_RECORD,
@@ -394,6 +420,10 @@ export class WebRTCManager {
     const res = room.stopRecord();
 
     if (isGrpcRequest) {
+      this.socketGateway.server
+        .to(roomId.toString())
+        .emit(SocketEvent.stopRecordSSC);
+
       this.messageBroker.publishRedisChannel(
         RedisChannel.EVERYBODY,
         RedisEvents.STOP_RECORD,

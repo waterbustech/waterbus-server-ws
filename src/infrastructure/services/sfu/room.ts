@@ -132,6 +132,7 @@ export class Room {
       return {
         otherParticipants: this.getOtherParticipants(participantId),
         offer: peer.localDescription.sdp,
+        isRecording: this.recordId != null,
       };
     } catch (error) {
       this.logger.error(`[JOIN ROOM]: fail with error ${error}`);
@@ -208,6 +209,7 @@ export class Room {
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
       isScreenSharing: targetMedia.isScreenSharing,
+      isHandRaising: targetMedia.isHandRasing,
       isE2eeEnabled: targetMedia.isE2eeEnabled,
       videoCodec: targetMedia.codec,
     };
@@ -315,6 +317,12 @@ export class Room {
     if (!this.participants[participantId]) return;
 
     this.participants[participantId].media.setScreenSharing(isSharing);
+  }
+
+  setHandRaising(participantId: string, isRaising: boolean) {
+    if (!this.participants[participantId]) return;
+
+    this.participants[participantId].media.setHandRasing(isRaising);
   }
 
   startRecord({ recordId }: { recordId: number }) {

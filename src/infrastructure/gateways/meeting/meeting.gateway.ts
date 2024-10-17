@@ -28,6 +28,7 @@ import { UpdateWhiteBoardDto } from './dtos/update_white_board.dto';
 import { CleanWhiteBoardDto } from './dtos/clean_board.dto';
 import { WhiteBoardGrpcService } from 'src/infrastructure/services/meeting/white-board.service';
 import { WhiteBoardAction } from 'src/domain/models/white-board-action';
+import { SetHandRaisingDto } from './dtos/set_hand_raising.dto';
 
 @WebSocketGateway()
 export class MeetingGateway {
@@ -335,7 +336,7 @@ export class MeetingGateway {
   }
 
   @SubscribeMessage(SocketEvent.handRaisingCSS)
-  handleSetHandRaising(client: ISocketClient, payload: any): any {
+  handleSetHandRaising(client: ISocketClient, payload: SetHandRaisingDto): any {
     const clientInfo = this.rtcManager.getClientBySocketId({
       clientId: client.id,
     });
@@ -347,8 +348,13 @@ export class MeetingGateway {
 
     if (!roomId) return;
 
+    const isRaising = payload.isRaising;
+
+    this.rtcManager.setHandRaising({ clientId: client.id, isRaising });
+
     client.broadcast.to(roomId).emit(SocketEvent.handRaisingSSC, {
       participantId: targetId,
+      isRaising,
     });
   }
 
@@ -393,7 +399,7 @@ export class MeetingGateway {
   ) {
     client
       .to(this._getWhiteBoardRoom(payload.roomId))
-      .to(SocketEvent.cleanWhiteBoardSSC);
+      .emit(SocketEvent.cleanWhiteBoardSSC, payload);
 
     await this.whiteBoardGrpcService.updateBoard({
       meetingId: Number(payload.roomId),

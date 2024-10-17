@@ -26,6 +26,7 @@ export class Media {
   audioEnabled: boolean = true;
   isE2eeEnabled: boolean = false;
   isScreenSharing: boolean = false;
+  isHandRasing: boolean = false;
   cameraType: number = 0; // 0: front | 1: rear
   codec: string;
   private logger: Logger;
@@ -93,6 +94,12 @@ export class Media {
     if (!isEnabled) {
       this.removeLastTrack();
     }
+  }
+
+  setHandRasing(isEnabled: boolean) {
+    if (this.isHandRasing == isEnabled) return;
+
+    this.isHandRasing = isEnabled;
   }
 
   private removeLastTrack() {

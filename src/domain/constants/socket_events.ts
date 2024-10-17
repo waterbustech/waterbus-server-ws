@@ -26,8 +26,8 @@ const SocketEvent = {
   handRaisingCSS: 'HAND_RAISING_CSS',
   subtitleSSC: 'SUBTITLE_SSC',
   setSubscribeSubtitleCSS: 'SET_SUBSCRIBE_SUBTITLE_CSS',
-  setRaiseHandSSC: 'SET_RAISE_HAND_SSC',
-  setRaiseHandCSS: 'SET_RAISE_HAND_CSS',
+  startRecordSSC: 'START_RECORD_SSC',
+  stopRecordSSC: 'STOP_RECORD_SSC',
 
   publisherRenegotiationCSS: 'PUBLISHER_RENEGOTIATION_CSS',
   publisherRenegotiationSSC: 'PUBLISHER_RENEGOTIATION_SSC',
