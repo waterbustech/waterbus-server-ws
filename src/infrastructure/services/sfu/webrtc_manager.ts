@@ -7,6 +7,12 @@ import { EnvironmentConfigService } from 'src/infrastructure/config/environment/
 import { Server } from 'socket.io';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 import { WrapperType } from 'src/infrastructure/config/types/wrapper-type';
+import { IClient } from 'src/domain/models/client.interface';
+import { MeetingGrpcService } from '../meeting/meeting.service';
+import { MessageBroker } from '../message-broker/message-broker';
+import { RedisChannel } from 'src/domain/constants/redis_channel';
+import RedisEvents from 'src/domain/constants/redis_events';
+import { UploadFilesService } from '../uploads/upload-files.service';
 
 @Injectable()
 export class WebRTCManager {
@@ -15,9 +21,14 @@ export class WebRTCManager {
   private logger: Logger;
 
   constructor(
-    private environment: EnvironmentConfigService,
+    private readonly environment: EnvironmentConfigService,
+    private readonly uploadFilesService: UploadFilesService,
     @Inject(forwardRef(() => SocketGateway))
-    private socketGateway: WrapperType<SocketGateway>,
+    private readonly socketGateway: WrapperType<SocketGateway>,
+    @Inject(forwardRef(() => MeetingGrpcService))
+    private readonly meetingGrpcService: WrapperType<MeetingGrpcService>,
+    @Inject(forwardRef(() => MessageBroker))
+    private readonly messageBroker: WrapperType<MessageBroker>,
   ) {
     this.logger = new Logger(WebRTCManager.name);
   }
@@ -43,13 +54,15 @@ export class WebRTCManager {
         this.rooms[roomId] = new Room(
           this.environment,
           this.socketGateway,
+          this.meetingGrpcService,
+          this.uploadFilesService,
           roomId,
         );
       }
 
       const room = this.rooms[roomId];
 
-      const { offer, otherParticipants } = await room.join(
+      const { offer, otherParticipants, isRecording } = await room.join(
         sdp,
         isVideoEnabled,
         isAudioEnabled,
@@ -63,6 +76,7 @@ export class WebRTCManager {
       return {
         sdp: offer,
         otherParticipants: otherParticipants,
+        isRecording: isRecording,
       };
     } catch (error) {
       this.logger.error(
@@ -337,6 +351,87 @@ export class WebRTCManager {
     if (!room) return;
 
     room.setScreenSharing(participantId, isSharing);
+  }
+
+  async setHandRaising({
+    clientId,
+    isRaising,
+  }: {
+    clientId: string;
+    isRaising: boolean;
+  }) {
+    const clientInfo = this.clients[clientId];
+
+    if (!clientInfo) return;
+
+    const roomId = clientInfo.roomId;
+    const participantId = clientInfo.participantId;
+
+    const room = this.rooms[roomId];
+
+    if (!room) return;
+
+    room.setHandRaising(participantId, isRaising);
+  }
+
+  startRecord({
+    recordId,
+    roomId,
+    isGrpcRequest = true,
+  }: {
+    recordId: number;
+    roomId: number;
+    isGrpcRequest?: boolean;
+  }): boolean {
+    const room = this.rooms[roomId];
+
+    if (!room) return false;
+
+    if (room.recordId) return false;
+
+    room.startRecord({ recordId });
+
+    if (isGrpcRequest) {
+      this.socketGateway.server
+        .to(roomId.toString())
+        .emit(SocketEvent.startRecordSSC);
+
+      this.messageBroker.publishRedisChannel(
+        RedisChannel.EVERYBODY,
+        RedisEvents.START_RECORD,
+        { recordId, roomId },
+      );
+    }
+
+    return true;
+  }
+
+  stopRecord({
+    roomId,
+    isGrpcRequest = true,
+  }: {
+    roomId: number;
+    isGrpcRequest?: boolean;
+  }) {
+    const room = this.rooms[roomId];
+
+    if (!room || !room.recordId) return;
+
+    const res = room.stopRecord();
+
+    if (isGrpcRequest) {
+      this.socketGateway.server
+        .to(roomId.toString())
+        .emit(SocketEvent.stopRecordSSC);
+
+      this.messageBroker.publishRedisChannel(
+        RedisChannel.EVERYBODY,
+        RedisEvents.STOP_RECORD,
+        { roomId },
+      );
+    }
+
+    return res;
   }
 
   leaveRoom({ clientId }: { clientId: string }): IClient | null {

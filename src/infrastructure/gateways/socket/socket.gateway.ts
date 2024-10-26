@@ -10,6 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import SocketEvent from 'src/domain/constants/socket_events';
+import { IClient } from 'src/domain/models/client.interface';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { AuthGrpcService } from 'src/infrastructure/services/auth/auth.service';
 import { MeetingGrpcService } from 'src/infrastructure/services/meeting/meeting.service';

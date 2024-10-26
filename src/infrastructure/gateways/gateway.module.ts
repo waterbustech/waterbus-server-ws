@@ -9,12 +9,11 @@ import { EnvironmentConfigModule } from '../config/environment/environment.modul
 import { AuthGrpcService } from '../services/auth/auth.service';
 import { MessageBroker } from '../services/message-broker/message-broker';
 import { WhiteBoardGrpcService } from '../services/meeting/white-board.service';
-import { RecordGrpcService } from '../services/meeting/record.service';
 
 @Module({
   imports: [
     ClientProxyModule.register(),
-    WebRTCModule,
+    forwardRef(() => WebRTCModule),
     EnvironmentConfigModule,
   ],
   providers: [
@@ -35,16 +34,10 @@ import { RecordGrpcService } from '../services/meeting/record.service';
       useFactory: (clientProxy: ClientGrpc) =>
         new WhiteBoardGrpcService(clientProxy),
     },
-    {
-      provide: RecordGrpcService,
-      inject: [ClientProxyModule.recordClientProxy],
-      useFactory: (clientProxy: ClientGrpc) =>
-        new RecordGrpcService(clientProxy),
-    },
-    MessageBroker,
     SocketGateway,
     MeetingGateway,
+    MessageBroker,
   ],
-  exports: [SocketGateway],
+  exports: [SocketGateway, MeetingGrpcService, MessageBroker],
 })
 export class GatewayModule {}

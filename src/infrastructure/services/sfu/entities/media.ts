@@ -1,11 +1,10 @@
-import { nanoid } from 'nanoid';
 import {
   RTCRtpTransceiver,
   MediaStreamTrack,
   RTCRtpCodecParameters,
   MediaStream,
-  // MediaRecorder,
 } from 'werift';
+import { MediaRecorder, MediaRecorderOptions } from 'werift/nonstandard';
 import { Track } from './track';
 import {
   kAV1Codec,
@@ -16,9 +15,10 @@ import {
 } from '../../../../domain/constants/webrtc_config';
 import { Logger } from '@nestjs/common';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
+import * as path from 'path';
 
 export class Media {
-  readonly mediaId = 'm_' + nanoid();
+  readonly mediaId = 'm_' + crypto.randomUUID();
   private participantId: string;
   tracks: Track[] = [];
   transceiver?: RTCRtpTransceiver;
@@ -26,10 +26,12 @@ export class Media {
   audioEnabled: boolean = true;
   isE2eeEnabled: boolean = false;
   isScreenSharing: boolean = false;
+  isHandRasing: boolean = false;
   cameraType: number = 0; // 0: front | 1: rear
   codec: string;
   private logger: Logger;
   private recorder: MediaRecorder;
+  private callbackStopRecord?: () => void;
 
   constructor(
     readonly publisherId: string,
@@ -94,6 +96,12 @@ export class Media {
     }
   }
 
+  setHandRasing(isEnabled: boolean) {
+    if (this.isHandRasing == isEnabled) return;
+
+    this.isHandRasing = isEnabled;
+  }
+
   private removeLastTrack() {
     if (!this.tracks) return;
 
@@ -111,9 +119,7 @@ export class Media {
   }
 
   stop() {
-    if (this.recorder != null) {
-      this.recorder.stop();
-    }
+    this.stopRecord();
 
     this.tracks.forEach((track) => track.stop());
   }
@@ -157,18 +163,46 @@ export class Media {
     this.isE2eeEnabled = isEnable;
   }
 
-  // startRecord() {
-  //   if (this.tracks.length != 2) return;
+  setCallback(callback: () => void) {
+    this.callbackStopRecord = callback;
+  }
 
-  //   this.recorder = new MediaRecorder(`./rec/${this.mediaId}.webm`, 2, {
-  //     width: 640,
-  //     height: 480,
-  //   });
+  startRecord(): string {
+    if (this.tracks.length != 2 || this.recorder) return;
 
-  //   this.tracks.forEach((track) => {
-  //     this.recorder.addTrack(track.track);
-  //   });
-  // }
+    const uniqueFileName = `${crypto.randomUUID()}.webm`;
+
+    const filePath = path.resolve(process.cwd(), 'rec', uniqueFileName);
+
+    const options: MediaRecorderOptions = {
+      width: 640,
+      height: 480,
+      jitterBufferLatency: 200,
+      jitterBufferSize: 100,
+      disableLipSync: false,
+      waitForKeyframe: true,
+      defaultDuration: 3000,
+      disableNtp: false,
+      tracks: this.tracks.map((t) => t.track),
+    };
+
+    this.recorder = new MediaRecorder({
+      numOfTracks: this.tracks.length,
+      path: filePath,
+      ...options,
+    });
+
+    return filePath;
+  }
+
+  stopRecord() {
+    if (this.recorder != null) {
+      if (this.callbackStopRecord) this.callbackStopRecord();
+      this.recorder.stop();
+    }
+
+    this.recorder = null;
+  }
 }
 
 export type MediaInfo = {

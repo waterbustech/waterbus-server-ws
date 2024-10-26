@@ -4,9 +4,9 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
 import { MessageMappingProperties } from '@nestjs/websockets';
 import { Observable } from 'rxjs';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { INestApplicationContext, Logger } from '@nestjs/common';
 import { AuthGrpcService } from 'src/infrastructure/services/auth/auth.service';
+import { DefaultEventsMap } from 'node_modules/socket.io/dist/typed-events';
 
 export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;

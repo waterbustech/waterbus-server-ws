@@ -20,19 +20,24 @@ import { Logger } from '@nestjs/common';
 import { EnvironmentConfigService } from 'src/infrastructure/config/environment/environments';
 import { SocketGateway } from 'src/infrastructure/gateways/socket/socket.gateway';
 import SocketEvent from 'src/domain/constants/socket_events';
-import {
-  MediaStreamTrack,
-  // MediaRecorder,
-} from 'werift';
+import { MediaStreamTrack } from 'werift';
+import { RecordTrack } from 'src/domain/models/record-track';
+import { MeetingGrpcService } from '../meeting/meeting.service';
+import { UploadFilesService } from '../uploads/upload-files.service';
+import { meeting } from 'waterbus-proto';
 
 export class Room {
   private participants: Record<string, Participant> = {};
   private subscribers: Record<string, PeerConnection> = {};
+  public recordId: number;
+  private records: RecordTrack[] = [];
   private logger: Logger;
 
   constructor(
     private readonly environment: EnvironmentConfigService,
     private readonly serverSocket: SocketGateway,
+    private readonly meetingGrpcService: MeetingGrpcService,
+    private readonly uploadFilesService: UploadFilesService,
     private readonly roomId: string,
   ) {
     this.logger = new Logger(Room.name);
@@ -65,7 +70,7 @@ export class Room {
 
       this.participants[participantId] = {
         peer: peer,
-        media: this.createMedia(
+        media: this._createMedia(
           participantId,
           isVideoEnabled,
           isAudioEnabled,
@@ -100,7 +105,18 @@ export class Room {
           );
 
           if (isTrackAdded) {
-            this.addTrackToSubscribersPeer(track, participantId);
+            this._addTrackToSubscribersPeer(track, participantId);
+          }
+
+          const media = this.participants[participantId].media;
+
+          if (media.tracks.length > 1 && this.recordId) {
+            const videoPath = media.startRecord();
+
+            this._addRecordTrack({
+              participantId: Number(participantId),
+              videoPath,
+            });
           }
         } else {
           sleep(100);
@@ -116,11 +132,10 @@ export class Room {
       return {
         otherParticipants: this.getOtherParticipants(participantId),
         offer: peer.localDescription.sdp,
+        isRecording: this.recordId != null,
       };
     } catch (error) {
-      this.logger.error(
-        `[JOIN ROOM]: fail with error ${JSON.stringify(error)}`,
-      );
+      this.logger.error(`[JOIN ROOM]: fail with error ${error}`);
     }
   }
 
@@ -132,11 +147,11 @@ export class Room {
       gotIceCandidate,
     }: { gotIceCandidate: (candidate: RTCIceCandidate) => void },
   ) {
-    const targetMedia = this.getMedia(targetId);
+    const targetMedia = this._getMedia(targetId);
 
     if (!targetMedia) return;
 
-    const peerId = this.getSubscriberPeerId(targetId, participantId);
+    const peerId = this._getSubscriberPeerId(targetId, participantId);
     const peer = new PeerConnection({
       iceServers: this.environment.getIceServers(),
       headerExtensions: {
@@ -154,10 +169,10 @@ export class Room {
       debug: debugConfig,
     });
 
-    this.addSubscriber(peerId, peer);
+    this._addSubscriber(peerId, peer);
 
     peer.onnegotiationneeded = async () => {
-      const media = this.getMedia(targetId);
+      const media = this._getMedia(targetId);
 
       if (media.tracks.length < 3) return;
 
@@ -194,6 +209,7 @@ export class Room {
       videoEnabled: targetMedia.videoEnabled,
       audioEnabled: targetMedia.audioEnabled,
       isScreenSharing: targetMedia.isScreenSharing,
+      isHandRaising: targetMedia.isHandRasing,
       isE2eeEnabled: targetMedia.isE2eeEnabled,
       videoCodec: targetMedia.codec,
     };
@@ -204,7 +220,7 @@ export class Room {
     participantId: string,
     sdp: string,
   ) {
-    const peer = this.getSubscriberPeer(targetId, participantId);
+    const peer = this._getSubscriberPeer(targetId, participantId);
 
     if (peer == null) return;
 
@@ -212,7 +228,7 @@ export class Room {
     await peer.setRemoteDescription(answer);
 
     this.logger.log(
-      `[ADDED REMOTE DESCRIPTION]: ${this.getSubscriberPeerId(
+      `[ADDED REMOTE DESCRIPTION]: ${this._getSubscriberPeerId(
         targetId,
         participantId,
       )}`,
@@ -259,13 +275,13 @@ export class Room {
     participantId: string,
     candidate: RTCIceCandidate,
   ) {
-    const peer = this.getSubscriberPeer(targetId, participantId);
+    const peer = this._getSubscriberPeer(targetId, participantId);
 
     if (peer == null) return;
 
     await peer.addIceCandidate(candidate);
     this.logger.log(
-      `[ADDED CANDIDATE]: ${this.getSubscriberPeerId(targetId, participantId)}`,
+      `[ADDED CANDIDATE]: ${this._getSubscriberPeerId(targetId, participantId)}`,
     );
   }
 
@@ -303,11 +319,81 @@ export class Room {
     this.participants[participantId].media.setScreenSharing(isSharing);
   }
 
+  setHandRaising(participantId: string, isRaising: boolean) {
+    if (!this.participants[participantId]) return;
+
+    this.participants[participantId].media.setHandRasing(isRaising);
+  }
+
+  startRecord({ recordId }: { recordId: number }) {
+    if (this.recordId) return;
+
+    this.recordId = recordId;
+
+    for (const key in this.participants) {
+      if (this.participants.hasOwnProperty(key)) {
+        const participant = this.participants[key];
+        const videoPath = participant.media.startRecord();
+
+        this._addRecordTrack({ participantId: Number(key), videoPath });
+      }
+    }
+  }
+
+  stopRecord() {
+    if (!this.recordId) return;
+
+    const recordId = this.recordId;
+
+    this.recordId = null;
+
+    for (const key in this.participants) {
+      if (this.participants.hasOwnProperty(key)) {
+        this.participants[key].media.stopRecord();
+      }
+    }
+
+    const filePaths = this.records.map((r) => r.videoPath);
+    const records = this.records.map((r) => r);
+
+    this.uploadFilesService.uploadVideos(filePaths).then((savedFiles) => {
+      if (!savedFiles) return;
+
+      let tracks: meeting.RecordTrackRequest[] = [];
+
+      for (let i = 0; i < savedFiles.length; i++) {
+        const track = records[i];
+
+        tracks.push({
+          participantId: track.participantId,
+          startTime: track.startTime,
+          endTime: track.endTime,
+          urlToVideo: savedFiles[i],
+        });
+      }
+
+      if (!tracks) return null;
+
+      const grpcPayload: meeting.RecordRequest = {
+        recordId: recordId,
+        tracks: tracks,
+      };
+
+      this.meetingGrpcService.emitParticipantTracks(grpcPayload);
+    });
+
+    this.records = [];
+
+    return {
+      recordId: recordId,
+    };
+  }
+
   async leave(participantId: string) {
     this.logger.log(`[IN_ROOM] ${participantId} has left`);
-    this.removeAllSubscribersWithTargetId(participantId);
+    this._removeAllSubscribersWithTargetId(participantId);
 
-    const media = this.getMedia(participantId);
+    const media = this._getMedia(participantId);
 
     if (media) {
       await media.stop();
@@ -316,18 +402,37 @@ export class Room {
     delete this.participants[participantId];
   }
 
-  private getSubscriberPeer(
+  private _addRecordTrack({
+    participantId,
+    videoPath,
+  }: {
+    participantId: number;
+    videoPath: string;
+  }) {
+    if (!this.recordId) return;
+
+    const track: RecordTrack = {
+      participantId,
+      videoPath,
+      startTime: this._getCurrentTime(),
+      endTime: this._getCurrentTime(),
+    };
+
+    this.records.push(track);
+  }
+
+  private _getSubscriberPeer(
     targetId: string,
     participantId: string,
   ): PeerConnection | null {
     const peer =
-      this.subscribers[this.getSubscriberPeerId(targetId, participantId)];
+      this.subscribers[this._getSubscriberPeerId(targetId, participantId)];
 
     return peer;
   }
 
   // MARK: private
-  private createMedia(
+  private _createMedia(
     publisherId: string,
     isVideoEnabled: boolean,
     isAudioEnabled: boolean,
@@ -341,13 +446,23 @@ export class Room {
       isE2eeEnabled,
     );
 
+    media.setCallback(() => {
+      let indexOfTrack = this.records.findIndex(
+        (pTrack) => pTrack.participantId === Number(publisherId),
+      );
+
+      if (indexOfTrack > -1) {
+        this.records[indexOfTrack].endTime = this._getCurrentTime();
+      }
+    });
+
     const transceiver = peer.addTransceiver('video', { direction: 'recvonly' });
     media.initAV(transceiver);
 
     return media;
   }
 
-  private getMedia(participantId: string): Media | null {
+  private _getMedia(participantId: string): Media | null {
     const participant = this.participants[participantId];
 
     if (!participant) return null;
@@ -356,8 +471,11 @@ export class Room {
   }
 
   // MARK: private related to subscribers
-  private addTrackToSubscribersPeer(track: MediaStreamTrack, targetId: string) {
-    const prefixTrackId = this.getSubscribersPrefixPeerId(targetId);
+  private _addTrackToSubscribersPeer(
+    track: MediaStreamTrack,
+    targetId: string,
+  ) {
+    const prefixTrackId = this._getSubscribersPrefixPeerId(targetId);
     const peerIds = Object.keys(this.subscribers).filter((trackId) =>
       trackId.startsWith(prefixTrackId),
     );
@@ -370,27 +488,33 @@ export class Room {
     }
   }
 
-  private getSubscriberPeerId(
+  private _getSubscriberPeerId(
     targetId: string,
     participantId: string,
   ): string | null {
     return `p_${targetId}_${participantId}`;
   }
 
-  private getSubscribersPrefixPeerId(targetId: string): string | null {
+  private _getSubscribersPrefixPeerId(targetId: string): string | null {
     return `p_${targetId}_`;
   }
 
-  private addSubscriber(peerId: string, peer: PeerConnection) {
+  private _addSubscriber(peerId: string, peer: PeerConnection) {
     this.subscribers[peerId] = peer;
   }
 
-  private removeAllSubscribersWithTargetId(participantId: string) {
+  private _removeAllSubscribersWithTargetId(participantId: string) {
     for (const key in Object.keys(this.subscribers)) {
       if (key.startsWith(`p_${participantId}`)) {
         delete this.subscribers[key];
       }
     }
+  }
+
+  private _getCurrentTime(): string {
+    const now = new Date();
+    const formattedDate = now.toISOString().slice(0, 19);
+    return formattedDate;
   }
 }
 
